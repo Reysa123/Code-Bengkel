@@ -1,0 +1,29 @@
+// 1. lib/data/repositories/vehicle_repository.dart
+import 'package:sqflite/sqflite.dart';
+import '../../core/database/database_helper.dart';
+import '../models/vehicle.dart';
+
+class VehicleRepository {
+  final dbHelper = DatabaseHelper.instance;
+
+  Future<List<Vehicle>> getAll() async {
+    final db = await dbHelper.database;
+    final maps = await db.query('vehicles', orderBy: 'plat_nomor ASC');
+    return maps.map((e) => Vehicle.fromMap(e)).toList();
+  }
+
+  Future<int> insert(Vehicle vehicle) async {
+    final db = await dbHelper.database;
+    return await db.insert('vehicles', vehicle.toMap());
+  }
+
+  Future<int> update(Vehicle vehicle) async {
+    final db = await dbHelper.database;
+    return await db.update('vehicles', vehicle.toMap(), where: 'id = ?', whereArgs: [vehicle.id]);
+  }
+
+  Future<int> delete(int id) async {
+    final db = await dbHelper.database;
+    return await db.delete('vehicles', where: 'id = ?', whereArgs: [id]);
+  }
+}
