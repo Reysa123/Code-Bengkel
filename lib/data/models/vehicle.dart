@@ -8,6 +8,7 @@ class Vehicle extends Equatable {
   final String tipe;
   final String tahun;
   final String warna;
+  final String? namaCustomer;
 
   const Vehicle({
     this.id,
@@ -17,27 +18,29 @@ class Vehicle extends Equatable {
     required this.tipe,
     required this.tahun,
     this.warna = '',
+    this.namaCustomer,
   });
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'customer_id': customerId,
-        'plat_nomor': platNomor,
-        'merk': merk,
-        'tipe': tipe,
-        'tahun': tahun,
-        'warna': warna,
-      };
+    'id': id,
+    'customer_id': customerId,
+    'plat_nomor': platNomor,
+    'merk': merk,
+    'tipe': tipe,
+    'tahun': tahun,
+    'warna': warna,
+  };
 
   factory Vehicle.fromMap(Map<String, dynamic> map) => Vehicle(
-        id: map['id'],
-        customerId: map['customer_id'],
-        platNomor: map['plat_nomor'],
-        merk: map['merk'],
-        tipe: map['tipe'],
-        tahun: map['tahun'],
-        warna: map['warna'] ?? '',
-      );
+    id: map['id'],
+    customerId: map['customer_id'],
+    platNomor: map['plat_nomor'],
+    merk: map['merk'],
+    tipe: map['tipe'],
+    tahun: map['tahun'],
+    warna: map['warna'] ?? '',
+    namaCustomer: map['nama_customer'],
+  );
 
   @override
   List<Object?> get props => [id, platNomor];

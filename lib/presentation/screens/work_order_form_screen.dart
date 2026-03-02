@@ -170,7 +170,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
         final service = _filteredServices[index];
         return ListTile(
           title: Text(service.nama),
-          subtitle: Text('Rp ${service.harga.toStringAsFixed(0)}'),
+          subtitle: Text('Rp ${NumberFormat('#,###').format(service.harga)}'),
           trailing: const Icon(Icons.add_circle, color: Colors.green),
           onTap: () {
             setState(() {
@@ -201,7 +201,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
         return ListTile(
           title: Text('${part.kode} - ${part.nama}'),
           subtitle: Text(
-            'Stok: ${part.stok} | Rp ${part.hargaJual.toStringAsFixed(0)}',
+            'Stok: ${part.stok} | Rp ${NumberFormat('#,###').format(part.hargaJual)}',
           ),
           trailing: const Icon(Icons.add_circle, color: Colors.blue),
           onTap: () {

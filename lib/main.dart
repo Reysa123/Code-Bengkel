@@ -1,6 +1,7 @@
 // ================================================
 // 1. lib/main.dart
 // ================================================
+import 'package:bengkel/presentation/blocs/customer_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,7 +12,6 @@ import 'presentation/blocs/service_cubit.dart';
 import 'presentation/blocs/part_cubit.dart';
 import 'presentation/blocs/suppliers_cubit.dart';
 import 'presentation/blocs/work_order_cubit.dart';
-import 'presentation/blocs/purchase_cubit.dart';
 import 'presentation/screens/home_screen.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -37,6 +37,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => PartCubit()..loadAll()),
         BlocProvider(create: (_) => SupplierCubit()..loadAll()),
         BlocProvider(create: (_) => WorkOrderCubit()..loadAll()),
+        BlocProvider(create: (_) => CustomerCubit()..loadAll()),
         // BlocProvider(create: (_) => PurchaseCubit()..loadAll()),
       ],
       child: MaterialApp(

@@ -8,7 +8,11 @@ class VehicleRepository {
 
   Future<List<Vehicle>> getAll() async {
     final db = await dbHelper.database;
-    final maps = await db.query('vehicles', orderBy: 'plat_nomor ASC');
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+    SELECT vehicles.*, customers.nama AS nama_customer 
+    FROM vehicles 
+    LEFT JOIN customers ON vehicles.customer_id = customers.id
+  ''');
     return maps.map((e) => Vehicle.fromMap(e)).toList();
   }
 
@@ -19,7 +23,12 @@ class VehicleRepository {
 
   Future<int> update(Vehicle vehicle) async {
     final db = await dbHelper.database;
-    return await db.update('vehicles', vehicle.toMap(), where: 'id = ?', whereArgs: [vehicle.id]);
+    return await db.update(
+      'vehicles',
+      vehicle.toMap(),
+      where: 'id = ?',
+      whereArgs: [vehicle.id],
+    );
   }
 
   Future<int> delete(int id) async {

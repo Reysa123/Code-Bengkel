@@ -32,10 +32,22 @@ class DatabaseHelper {
       FOREIGN KEY (customer_id) REFERENCES customers(id)
     )''');
 
-    await db.execute('''CREATE TABLE services (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nama TEXT NOT NULL, harga REAL NOT NULL, deskripsi TEXT
-    )''');
+   await db.execute('''
+  CREATE TABLE services (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama TEXT NOT NULL,
+    harga REAL NOT NULL,
+    deskripsi TEXT,
+    kategori TEXT NOT NULL CHECK (kategori IN (
+      'Mesin', 
+      'Chassis', 
+      'Electrical', 
+      'Powertrain', 
+      'Body & Paint', 
+      'General Service'
+    ))
+  )
+''');
 
     await db.execute('''CREATE TABLE parts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
