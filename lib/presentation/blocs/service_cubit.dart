@@ -23,7 +23,11 @@ class ServiceCubit extends Cubit<ServiceState> {
 
   Future<void> addService(Service service) async {
     try {
-      await _repository.insert(service);
+      if (service.id == null) {
+        await _repository.insert(service);
+      } else {
+        await _repository.update(service);
+      }
       await loadAll();
     } catch (e) {
       emit(ServiceError(e.toString()));

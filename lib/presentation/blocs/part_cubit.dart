@@ -23,7 +23,11 @@ class PartCubit extends Cubit<PartState> {
 
   Future<void> addPart(Part part) async {
     try {
-      await _repository.insert(part);
+      if (part.id == null) {
+        await _repository.insert(part);
+      } else {
+        await _repository.update(part);
+      }
       await loadAll();
     } catch (e) {
       emit(PartError(e.toString()));

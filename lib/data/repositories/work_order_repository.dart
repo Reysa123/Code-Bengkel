@@ -66,4 +66,23 @@ class WorkOrderRepository {
     await db.delete('wo_items', where: 'wo_id = ?', whereArgs: [id]);
     return await db.delete('work_orders', where: 'id = ?', whereArgs: [id]);
   }
+
+  Future<int> updateMechanic(
+    int woId,
+    int mechanicId, {
+    String? newStatus,
+  }) async {
+    final db = await dbHelper.database;
+    Map<String, dynamic> map = {};
+    map['mechanic_id'] = mechanicId;
+    if (newStatus != null) {
+      map['status'] = newStatus;
+    }
+    return await db.update(
+      'work_orders',
+      map,
+      where: 'id = ?',
+      whereArgs: [woId],
+    );
+  }
 }

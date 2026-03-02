@@ -1,8 +1,11 @@
 // lib/presentation/screens/service_list_screen.dart
 // 🔥 SERVICE / JASA LIST SCREEN LENGKAP (Full CRUD + Search + Dialog)
 
+import 'package:bengkel/utils/ribuan.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../data/models/service.dart';
 import '../../presentation/blocs/service_cubit.dart';
@@ -35,7 +38,9 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
   void _showServiceForm({Service? service}) {
     final isEdit = service != null;
     final namaController = TextEditingController(text: service?.nama);
-    final hargaController = TextEditingController(text: service?.harga.toString());
+    final hargaController = TextEditingController(
+      text: NumberFormat('#,###').format(service?.harga ?? 0),
+    );
     final deskripsiController = TextEditingController(text: service?.deskripsi);
 
     showDialog(
@@ -53,6 +58,10 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
               ),
               const SizedBox(height: 12),
               TextField(
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  ThousandsSeparatorInputFormatter(),
+                ],
                 controller: hargaController,
                 decoration: const InputDecoration(
                   labelText: 'Harga (Rp) *',
@@ -83,7 +92,9 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                 return;
               }
 
-              final harga = double.tryParse(hargaController.text.replaceAll(',', '')) ?? 0;
+              final harga =
+                  double.tryParse(hargaController.text.replaceAll(',', '')) ??
+                  0;
 
               final newService = Service(
                 id: service?.id,
@@ -95,15 +106,17 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
               if (isEdit) {
                 // Update (kita tambahkan method di cubit nanti jika belum ada)
                 // Untuk sementara pakai add dulu, atau tambah update di cubit
-                context.read<ServiceCubit>().addService(newService); // ganti ke update nanti
+                context.read<ServiceCubit>().addService(
+                  newService,
+                ); // ganti ke update nanti
               } else {
                 context.read<ServiceCubit>().addService(newService);
               }
 
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AppStrings.saveSuccess)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(AppStrings.saveSuccess)));
             },
             child: Text(isEdit ? 'Simpan Perubahan' : 'Tambah Jasa'),
           ),
@@ -118,7 +131,9 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Hapus Jasa?'),
-        content: Text('Nama Jasa: ${service.nama}\nHarga: Rp ${service.harga.toStringAsFixed(0)}\n\nData ini akan dihapus permanen.'),
+        content: Text(
+          'Nama Jasa: ${service.nama}\nHarga: Rp ${service.harga.toStringAsFixed(0)}\n\nData ini akan dihapus permanen.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -130,9 +145,9 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
               // Untuk sekarang kita refresh saja
               context.read<ServiceCubit>().loadAll();
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Jasa dihapus')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Jasa dihapus')));
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Hapus'),
@@ -164,7 +179,9 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
               decoration: InputDecoration(
                 hintText: 'Cari nama jasa...',
                 prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 filled: true,
                 fillColor: Colors.grey[100],
               ),
@@ -190,7 +207,8 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                         Text('Error: ${state.message}'),
                         const SizedBox(height: 12),
                         ElevatedButton(
-                          onPressed: () => context.read<ServiceCubit>().loadAll(),
+                          onPressed: () =>
+                              context.read<ServiceCubit>().loadAll(),
                           child: const Text('Coba Lagi'),
                         ),
                       ],
@@ -199,12 +217,16 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                 }
 
                 if (state is ServiceLoaded) {
-                  final filtered = state.services.where((s) =>
-                      s.nama.toLowerCase().contains(_searchQuery)).toList();
+                  final filtered = state.services
+                      .where((s) => s.nama.toLowerCase().contains(_searchQuery))
+                      .toList();
 
                   if (filtered.isEmpty) {
                     return const Center(
-                      child: Text('Tidak ada data jasa', style: TextStyle(fontSize: 16)),
+                      child: Text(
+                        'Tidak ada data jasa',
+                        style: TextStyle(fontSize: 16),
+                      ),
                     );
                   }
 
@@ -217,26 +239,47 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                         final service = filtered[index];
                         return Card(
                           elevation: 2,
-                          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 6,
+                            horizontal: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(12),
                             leading: CircleAvatar(
                               radius: 28,
                               backgroundColor: Colors.green.shade100,
-                              child: const Icon(Icons.build, color: Colors.green, size: 32),
+                              child: const Icon(
+                                Icons.build,
+                                color: Colors.green,
+                                size: 32,
+                              ),
                             ),
                             title: Text(
                               service.nama,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Rp ${service.harga.toStringAsFixed(0)}',
-                                    style: const TextStyle(fontSize: 16, color: Colors.green)),
+                                Text(
+                                  'Rp ${NumberFormat('#,###').format(service.harga)}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.green,
+                                  ),
+                                ),
                                 if (service.deskripsi.isNotEmpty)
-                                  Text(service.deskripsi, maxLines: 2, overflow: TextOverflow.ellipsis),
+                                  Text(
+                                    service.deskripsi,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                               ],
                             ),
                             trailing: PopupMenuButton(
@@ -244,11 +287,23 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                               itemBuilder: (context) => [
                                 const PopupMenuItem(
                                   value: 'edit',
-                                  child: Row(children: [Icon(Icons.edit), SizedBox(width: 8), Text('Edit')]),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit),
+                                      SizedBox(width: 8),
+                                      Text('Edit'),
+                                    ],
+                                  ),
                                 ),
                                 const PopupMenuItem(
                                   value: 'delete',
-                                  child: Row(children: [Icon(Icons.delete, color: Colors.red), SizedBox(width: 8), Text('Hapus')]),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete, color: Colors.red),
+                                      SizedBox(width: 8),
+                                      Text('Hapus'),
+                                    ],
+                                  ),
                                 ),
                               ],
                               onSelected: (value) {

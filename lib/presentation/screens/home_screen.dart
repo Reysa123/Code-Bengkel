@@ -1,6 +1,9 @@
 // ================================================
 // 2. lib/presentation/screens/home_screen.dart
 // ================================================
+import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
+import 'package:bengkel/presentation/screens/part_list_screen.dart';
+import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -39,14 +42,14 @@ class _HomeScreenState extends State<HomeScreen> {
       // 99 = Buat Work Order Baru
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const WorkOrderFormScreen()),
+        MaterialPageRoute(builder: (_) => const VehicleSearchScreen()),
       );
-    } else if (index == 100) {
+    } else if (index == 1) {
       // 100 = Kasir
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(builder: (_) => const KasirScreen()),
-      // );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const WorkOrderListScreen()),
+      );
     } else {
       setState(() => _selectedIndex = index);
     }
@@ -63,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       drawer: Drawer(
-        child: Column(
+        child: ListView(
           children: [
             // Header Drawer
             UserAccountsDrawerHeader(
@@ -72,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Image.asset(
-                  'assets/images/logo.png',
+                  'images/logo.png',
                   width: 60,
                 ), // tambah asset sendiri
               ),
@@ -106,16 +109,18 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.inventory),
               title: const Text('Data Part'),
-              onTap:
-                  () {}, //=> Navigator.push(context, MaterialPageRoute(builder: (_) => const PartListScreen())),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PartListScreen()),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Data Mekanik'),
-              onTap: () {}, //=> Navigator.push(
-              // context,
-              // MaterialPageRoute(builder: (_) => const MechanicListScreen()),
-              //),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MechanicListScreen()),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.local_shipping),

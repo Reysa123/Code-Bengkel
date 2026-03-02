@@ -1,12 +1,9 @@
 // lib/presentation/screens/work_order_form_screen.dart
-// 🔥 WORK ORDER FORM SCREEN LENGKAP (428 baris)
-// Sudah include: pilih kendaraan, mekanik, tambah multiple jasa + part,
-// hitung total otomatis, dialog pencarian, simpan ke DB via Bloc,
-// cetak billing langsung setelah simpan, validasi, dll.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../data/models/vehicle.dart';
 import '../../data/models/mechanic.dart';
@@ -22,7 +19,10 @@ import '../../presentation/blocs/work_order_cubit.dart';
 import '../../utils/print_utils.dart';
 
 class WorkOrderFormScreen extends StatefulWidget {
-  const WorkOrderFormScreen({super.key});
+  // Menerima parameter opsional kendaraan dari pencarian plat nomor
+  final Vehicle? initialVehicle;
+
+  const WorkOrderFormScreen({super.key, this.initialVehicle});
 
   @override
   State<WorkOrderFormScreen> createState() => _WorkOrderFormScreenState();
@@ -40,7 +40,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   DateTime _selectedDate = DateTime.now();
   Vehicle? _selectedVehicle;
   Mechanic? _selectedMechanic;
-  List<WoItem> selectedItems = [];
+  List<WoItem> _selectedItems = [];
   double _grandTotal = 0.0;
 
   // Untuk dialog tambah item
@@ -52,6 +52,12 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   void initState() {
     super.initState();
     _generateNoWO();
+
+    // LOGIKA PENTING: Jika ada data kendaraan dari parameter, set ke state
+    if (widget.initialVehicle != null) {
+      _selectedVehicle = widget.initialVehicle;
+    }
+
     context.read<VehicleCubit>().loadAll();
     context.read<MechanicCubit>().loadAll();
     context.read<ServiceCubit>().loadAll();
@@ -59,25 +65,18 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   }
 
   void _generateNoWO() {
-    _noWoController.text = DateFormat('yyMMddhhmmss').format(DateTime.now());
+    final uuid = const Uuid().v4().substring(0, 8).toUpperCase();
+    _noWoController.text =
+        "${DateFormat('yyMMddhhmmss').format(DateTime.now())}";
   }
 
   void _updateGrandTotal() {
     setState(() {
-      _grandTotal = selectedItems.fold(0.0, (sum, item) => sum + item.subtotal);
+      _grandTotal = _selectedItems.fold(
+        0.0,
+        (sum, item) => sum + item.subtotal,
+      );
     });
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() => _selectedDate = picked);
-    }
   }
 
   // ================================== DIALOG TAMBAH ITEM ==================================
@@ -96,7 +95,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
             height: 500,
             child: Column(
               children: [
-                // Tab Jasa / Part
                 SegmentedButton<bool>(
                   segments: const [
                     ButtonSegment(value: true, label: Text('Jasa')),
@@ -112,7 +110,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                // Search
                 TextField(
                   controller: _searchController,
                   decoration: const InputDecoration(
@@ -123,7 +120,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                   onChanged: (_) => _loadFilteredItems(setDialogState),
                 ),
                 const SizedBox(height: 12),
-                // List items
                 Expanded(
                   child: _isServiceTab
                       ? _buildServiceList(setDialogState)
@@ -145,7 +141,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
 
   void _loadFilteredItems([StateSetter? setDialogState]) {
     final query = _searchController.text.toLowerCase();
-
     if (_isServiceTab) {
       final services = context.read<ServiceCubit>().state is ServiceLoaded
           ? (context.read<ServiceCubit>().state as ServiceLoaded).services
@@ -165,7 +160,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
           )
           .toList();
     }
-
     if (setDialogState != null) setDialogState(() {});
   }
 
@@ -179,16 +173,17 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
           subtitle: Text('Rp ${service.harga.toStringAsFixed(0)}'),
           trailing: const Icon(Icons.add_circle, color: Colors.green),
           onTap: () {
-            final newItem = WoItem(
-              type: 'service',
-              itemId: service.id!,
-              namaItem: service.nama,
-              qty: 1,
-              harga: service.harga,
-              subtotal: service.harga,
-            );
             setState(() {
-              selectedItems.add(newItem);
+              _selectedItems.add(
+                WoItem(
+                  type: 'service',
+                  itemId: service.id!,
+                  namaItem: service.nama,
+                  qty: 1,
+                  harga: service.harga,
+                  subtotal: service.harga,
+                ),
+              );
               _updateGrandTotal();
             });
             Navigator.pop(context);
@@ -213,19 +208,20 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
             if (part.stok <= 0) {
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('Stok part habis!')));
+              ).showSnackBar(const SnackBar(content: Text('Stok habis!')));
               return;
             }
-            final newItem = WoItem(
-              type: 'part',
-              itemId: part.id!,
-              namaItem: part.nama,
-              qty: 1,
-              harga: part.hargaJual,
-              subtotal: part.hargaJual,
-            );
             setState(() {
-              selectedItems.add(newItem);
+              _selectedItems.add(
+                WoItem(
+                  type: 'part',
+                  itemId: part.id!,
+                  namaItem: part.nama,
+                  qty: 1,
+                  harga: part.hargaJual,
+                  subtotal: part.hargaJual,
+                ),
+              );
               _updateGrandTotal();
             });
             Navigator.pop(context);
@@ -235,12 +231,11 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
     );
   }
 
-  // ================================== SAVE WORK ORDER ==================================
-  void _saveWorkOrder() async {
+  void _saveWorkOrder() {
     if (_formKey.currentState!.validate() &&
         _selectedVehicle != null &&
         _selectedMechanic != null &&
-        selectedItems.isNotEmpty) {
+        _selectedItems.isNotEmpty) {
       final wo = WorkOrder(
         noWo: _noWoController.text,
         tanggal: DateFormat('yyyy-MM-dd').format(_selectedDate),
@@ -249,18 +244,10 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
         total: _grandTotal,
         status: 'pending',
       );
-
-      context.read<WorkOrderCubit>().createWorkOrder(wo, selectedItems);
-
-      // Tunggu success dari Bloc
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Menyimpan Work Order...')));
+      context.read<WorkOrderCubit>().createWorkOrder(wo, _selectedItems);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lengkapi semua data & tambahkan minimal 1 item'),
-        ),
+        const SnackBar(content: Text('Lengkapi data & minimal 1 item')),
       );
     }
   }
@@ -268,27 +255,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Buat Work Order Baru'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.print),
-            onPressed: _grandTotal > 0
-                ? () => printBilling(
-                    WorkOrder(
-                      noWo: _noWoController.text,
-                      tanggal: DateFormat('yyyy-MM-dd').format(_selectedDate),
-                      vehicleId: _selectedVehicle?.id ?? 0,
-                      mechanicId: _selectedMechanic?.id ?? 0,
-                      total: _grandTotal,
-                    ),
-                    selectedItems,
-                  )
-                : null,
-            tooltip: 'Cetak Preview',
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Buat Work Order Baru')),
       body: MultiBlocListener(
         listeners: [
           BlocListener<WorkOrderCubit, WorkOrderState>(
@@ -296,28 +263,21 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
               if (state is WorkOrderSuccess) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Work Order berhasil disimpan!'),
+                    content: Text('Tersimpan!'),
                     backgroundColor: Colors.green,
                   ),
                 );
-                // Cetak otomatis setelah simpan
-                Future.delayed(const Duration(milliseconds: 800), () {
-                  printBilling(
-                    WorkOrder(
-                      noWo: _noWoController.text,
-                      tanggal: DateFormat('yyyy-MM-dd').format(_selectedDate),
-                      vehicleId: _selectedVehicle?.id ?? 0,
-                      mechanicId: _selectedMechanic?.id ?? 0,
-                      total: _grandTotal,
-                    ),
-                    selectedItems,
-                  );
-                });
-                Navigator.pop(context); // kembali ke list
-              } else if (state is WorkOrderError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${state.message}')),
+                printBilling(
+                  WorkOrder(
+                    noWo: _noWoController.text,
+                    tanggal: DateFormat('yyyy-MM-dd').format(_selectedDate),
+                    vehicleId: _selectedVehicle?.id ?? 0,
+                    mechanicId: _selectedMechanic?.id ?? 0,
+                    total: _grandTotal,
+                  ),
+                  _selectedItems,
                 );
+                Navigator.pop(context);
               }
             },
           ),
@@ -327,68 +287,86 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // No WO & Tanggal
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _noWoController,
-                        decoration: const InputDecoration(
-                          labelText: 'No. Work Order',
-                          border: OutlineInputBorder(),
-                        ),
-                        readOnly: true,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => _selectDate(context),
-                        child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'Tanggal',
-                            border: OutlineInputBorder(),
-                          ),
-                          child: Text(
-                            DateFormat('dd MMM yyyy').format(_selectedDate),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                // Field Plat Nomor (Read Only jika dari search)
+                TextFormField(
+                  controller: _noWoController,
+                  decoration: const InputDecoration(
+                    labelText: 'No. Work Order',
+                    border: OutlineInputBorder(),
+                  ),
+                  readOnly: true,
                 ),
                 const SizedBox(height: 16),
 
-                // Pilih Kendaraan
+                // Dropdown Kendaraan
                 BlocBuilder<VehicleCubit, VehicleState>(
                   builder: (context, state) {
                     if (state is VehicleLoaded) {
-                      return DropdownButtonFormField<Vehicle>(
-                        value: _selectedVehicle,
-                        decoration: const InputDecoration(
-                          labelText: 'Pilih Kendaraan',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: state.vehicles.map((v) {
-                          return DropdownMenuItem(
-                            value: v,
-                            child: Text('${v.platNomor} - ${v.merk} ${v.tipe}'),
-                          );
-                        }).toList(),
-                        onChanged: (val) =>
-                            setState(() => _selectedVehicle = val),
-                        validator: (val) =>
-                            val == null ? 'Pilih kendaraan' : null,
+                      final v = state.vehicles.firstWhere(
+                        (v) => v.id == _selectedVehicle?.id,
+                      );
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Baris 1: Plat Nomor & Merk (Bold)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                v.platNomor,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              Text(
+                                v.merk,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          // Baris 2: Model, Warna, Tahun (Informasi Lengkap)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "${v.tipe} (${v.tahun})",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  v.warna,
+                                  style: const TextStyle(fontSize: 11),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 1), // Garis pemisah antar item
+                        ],
                       );
                     }
-                    return const CircularProgressIndicator();
+                    return const LinearProgressIndicator();
                   },
                 ),
                 const SizedBox(height: 16),
 
-                // Pilih Mekanik
+                // Mekanik
                 BlocBuilder<MechanicCubit, MechanicState>(
                   builder: (context, state) {
                     if (state is MechanicLoaded) {
@@ -398,24 +376,25 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                           labelText: 'Pilih Mekanik',
                           border: OutlineInputBorder(),
                         ),
-                        items: state.mechanics.map((m) {
-                          return DropdownMenuItem(
-                            value: m,
-                            child: Text(m.nama),
-                          );
-                        }).toList(),
+                        items: state.mechanics
+                            .map(
+                              (m) => DropdownMenuItem(
+                                value: m,
+                                child: Text(m.nama),
+                              ),
+                            )
+                            .toList(),
                         onChanged: (val) =>
                             setState(() => _selectedMechanic = val),
                         validator: (val) =>
                             val == null ? 'Pilih mekanik' : null,
                       );
                     }
-                    return const CircularProgressIndicator();
+                    return const SizedBox();
                   },
                 ),
                 const SizedBox(height: 24),
 
-                // Tombol Tambah Item
                 ElevatedButton.icon(
                   onPressed: _showAddItemDialog,
                   icon: const Icon(Icons.add),
@@ -426,96 +405,42 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // List Item yang sudah ditambahkan
-                const Text(
-                  'Item Pekerjaan',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
+                // Daftar Item
                 Container(
+                  height: 200,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  height: 300,
-                  child: selectedItems.isEmpty
-                      ? const Center(child: Text('Belum ada item'))
-                      : ListView.builder(
-                          itemCount: selectedItems.length,
-                          itemBuilder: (context, index) {
-                            final item = selectedItems[index];
-                            return ListTile(
-                              title: Text(item.namaItem),
-                              subtitle: Text(
-                                '${item.qty} x Rp ${item.harga.toStringAsFixed(0)}',
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Rp ${item.subtotal.toStringAsFixed(0)}',
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        selectedItems.removeAt(index);
-                                        _updateGrandTotal();
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                  child: ListView.builder(
+                    itemCount: _selectedItems.length,
+                    itemBuilder: (context, index) {
+                      final item = _selectedItems[index];
+                      return ListTile(
+                        title: Text(item.namaItem),
+                        trailing: Text(
+                          'Rp ${item.subtotal.toStringAsFixed(0)}',
                         ),
+                        onLongPress: () => setState(() {
+                          _selectedItems.removeAt(index);
+                          _updateGrandTotal();
+                        }),
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(height: 24),
 
-                // Grand Total
-                Card(
-                  color: Colors.indigo.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'TOTAL',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'Rp ${_grandTotal.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.indigo,
-                          ),
-                        ),
-                      ],
-                    ),
+                // Total
+                Text(
+                  'TOTAL: Rp ${_grandTotal.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
-                // Catatan
-                TextFormField(
-                  controller: _catatanController,
-                  decoration: const InputDecoration(
-                    labelText: 'Catatan (opsional)',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 32),
-
-                // Tombol Simpan
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -525,10 +450,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
                     ),
-                    child: const Text(
-                      'SIMPAN & CETAK WORK ORDER',
-                      style: TextStyle(fontSize: 18),
-                    ),
+                    child: const Text('SIMPAN & CETAK'),
                   ),
                 ),
               ],

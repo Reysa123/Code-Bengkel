@@ -30,6 +30,15 @@ class MechanicCubit extends Cubit<MechanicState> {
     }
   }
 
+  Future<void> updateMechanic(Mechanic mechanic) async {
+    try {
+      await _repository.update(mechanic);
+      await loadAll();
+    } catch (e) {
+      emit(MechanicError(e.toString()));
+    }
+  }
+
   Future<void> deleteMechanic(int id) async {
     try {
       await _repository.delete(id);
