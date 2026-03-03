@@ -18,7 +18,21 @@ class WorkOrderRepository {
     ''');
     return maps.map((e) => WorkOrder.fromMap(e)).toList();
   }
-
+Future<void> assignMechanics(int woId, List<int> mechanicIds) async {
+  final db = await dbHelper.database;
+  await db.transaction((txn) async {
+    // Hapus assignment lama
+    await txn.delete('work_order_mechanics', where: 'work_order_id = ?', whereArgs: [woId]);
+    
+    // Insert baru
+    for (final mid in mechanicIds) {
+      await txn.insert('work_order_mechanics', {
+        'work_order_id': woId,
+        'mechanic_id': mid,
+      });
+    }
+  });
+}
   Future<int> insert(WorkOrder wo) async {
     final db = await dbHelper.database;
     return await db.insert('work_orders', wo.toMap());

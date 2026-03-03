@@ -13,6 +13,10 @@ class WorkOrder extends Equatable {
   // untuk tampilan di list (opsional)
   final String? platNomor;
   final String? merk;
+  final String? tipe;
+  final int? tahun;
+  final String? warna;
+  final String? namaCustomer;
   final String? namaMekanik;
 
   const WorkOrder({
@@ -26,6 +30,10 @@ class WorkOrder extends Equatable {
     this.paid = 0,
     this.platNomor,
     this.merk,
+    this.tipe,
+    this.tahun,
+    this.warna,
+    this.namaCustomer,
     this.namaMekanik,
   });
 

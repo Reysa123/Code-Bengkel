@@ -1,11 +1,13 @@
 // ================================================
 // 2. lib/presentation/screens/home_screen.dart
 // ================================================
+import 'package:bengkel/data/models/work_order.dart';
 import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
 import 'package:bengkel/presentation/screens/part_list_screen.dart';
 import 'package:bengkel/presentation/screens/purchse_form_screen.dart';
 import 'package:bengkel/presentation/screens/supplier_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
+import 'package:bengkel/presentation/screens/work_order_assignment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -162,7 +164,20 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.point_of_sale),
               title: const Text('Kasir / Pembayaran'),
-              onTap: () => _onDrawerItemTapped(100),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const WorkOrderAssignmentScreen(
+                    workOrder: WorkOrder(
+                      noWo: '260303104056',
+                      tanggal: '2026-03-03',
+                      vehicleId: 1,
+                      mechanicId: 0,
+                      total: 330000,
+                    ),
+                  ),
+                ),
+              ),
             ),
 
             const Divider(),
