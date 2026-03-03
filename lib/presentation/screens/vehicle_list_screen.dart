@@ -412,7 +412,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
 
   // Tambahkan fungsi ini agar _showCustomerPicker tidak error
   void _showNewCustomerForm({required Function(Customer) onSuccess}) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     final nameC = TextEditingController();
     final almtC = TextEditingController();
     final phoneC = TextEditingController();
@@ -427,7 +427,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
             Padding(
               padding: const EdgeInsets.all(20),
               child: Form(
-                key: _formKey,
+                key: formKey,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -495,7 +495,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                             ),
                           ),
                           onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
+                            if (formKey.currentState!.validate()) {
                               final newCust = Customer(
                                 nama: nameC.text.trim(),
                                 noHp: phoneC.text.trim(),

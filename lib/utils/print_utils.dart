@@ -1,4 +1,3 @@
-import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../data/models/work_order.dart';
@@ -14,7 +13,7 @@ Future<void> printBilling(WorkOrder wo, List<WoItem> items) async {
         pw.Text('No WO: ${wo.noWo}   Tanggal: ${wo.tanggal}'),
         pw.Text('Kendaraan: ${wo.platNomor} - ${wo.merk}'),
         pw.SizedBox(height: 20),
-        pw.Table.fromTextArray(
+        pw.TableHelper.fromTextArray(
           data: [
             ['Item', 'Qty', 'Harga', 'Subtotal'],
             ...items.map((e) => [e.namaItem, e.qty.toString(), e.harga.toStringAsFixed(0), e.subtotal.toStringAsFixed(0)]),

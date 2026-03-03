@@ -1,6 +1,5 @@
 // 5. lib/data/repositories/supplier_repository.dart
 // (Model Supplier belum dikirim, saya sertakan di bawah)
-import 'package:sqflite/sqflite.dart';
 import '../../core/database/database_helper.dart';
 import '../models/supplier.dart';   // ← buat file ini dulu
 

@@ -3,6 +3,8 @@
 // ================================================
 import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
 import 'package:bengkel/presentation/screens/part_list_screen.dart';
+import 'package:bengkel/presentation/screens/purchse_form_screen.dart';
+import 'package:bengkel/presentation/screens/supplier_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,8 +19,6 @@ import 'service_list_screen.dart';
 // import 'mechanic_list_screen.dart';
 // import 'supplier_list_screen.dart';
 // import 'purchase_form_screen.dart';
-import 'kasir_screen.dart';
-import 'report_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -125,10 +125,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.local_shipping),
               title: const Text('Data Supplier'),
-              // onTap: () => Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (_) => const SupplierListScreen()),
-              // ),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SupplierScreen()),
+              ),
             ),
 
             const Divider(),
@@ -154,10 +154,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.shopping_cart),
               title: const Text('Pembelian Part'),
-              // onTap: () => Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (_) => const PurchaseFormScreen()),
-              // ),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PurchaseFormScreen()),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.point_of_sale),
@@ -285,7 +285,9 @@ class DashboardPage extends StatelessWidget {
                         leading: const Icon(Icons.receipt),
                         title: Text('WO-${wo.noWo}'),
                         subtitle: Text('${wo.platNomor ?? "—"} • ${wo.status}'),
-                        trailing: Text('Rp ${wo.total.toStringAsFixed(0)}'),
+                        trailing: Text(
+                          'Rp ${NumberFormat('#,###').format(wo.total)}',
+                        ),
                       ),
                     );
                   },
