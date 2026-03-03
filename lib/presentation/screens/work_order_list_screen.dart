@@ -10,7 +10,6 @@ import '../../data/models/work_order.dart';
 import '../../data/repositories/work_order_repository.dart';
 import '../../presentation/blocs/work_order_cubit.dart';
 import '../../utils/print_utils.dart';
-import 'work_order_form_screen.dart';
 
 class WorkOrderListScreen extends StatefulWidget {
   const WorkOrderListScreen({super.key});
@@ -68,7 +67,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Hapus Work Order?'),
         content: Text(
-          'No WO: ${wo.noWo}\nTotal: Rp ${wo.total.toStringAsFixed(0)}\n\nData ini akan dihapus permanen.',
+          'No WO: ${wo.noWo}\nTotal: Rp ${NumberFormat('#,###').format(wo.total)}\n\nData ini akan dihapus permanen.',
         ),
         actions: [
           TextButton(
@@ -234,7 +233,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                       label: Text(_getStatusLabel(wo.status)),
                                       backgroundColor: _getStatusColor(
                                         wo.status,
-                                      ).withOpacity(0.2),
+                                      ).withAlpha(50),
                                       labelStyle: TextStyle(
                                         color: _getStatusColor(wo.status),
                                         fontWeight: FontWeight.bold,
@@ -254,7 +253,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Rp ${wo.total.toStringAsFixed(0)}',
+                                      'Rp ${NumberFormat('#,###').format(wo.total)}',
                                       style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
