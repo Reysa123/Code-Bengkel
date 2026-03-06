@@ -30,6 +30,30 @@ class WoItem extends Equatable {
   }
 
   double get finalSubtotal => qty * finalPrice;
+  WoItem copyWith({
+    int? id,
+    int? woId,
+    String? type,
+    int? itemId,
+    String? namaItem,
+    int? qty,
+    double? harga,
+    double? subtotal,
+    double? discountPercent,
+  }) {
+    return WoItem(
+      id: id ?? this.id,
+      woId: woId ?? this.woId,
+      type: type ?? this.type,
+      itemId: itemId ?? this.itemId,
+      namaItem: namaItem ?? this.namaItem,
+      qty: qty ?? this.qty,
+      harga: harga ?? this.harga,
+      subtotal: subtotal ?? this.subtotal,
+      discountPercent: discountPercent ?? this.discountPercent,
+    );
+  }
+
   Map<String, dynamic> toMap() => {
     'id': id,
     'wo_id': woId,

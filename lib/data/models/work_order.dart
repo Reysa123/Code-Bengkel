@@ -1,3 +1,4 @@
+
 import 'package:equatable/equatable.dart';
 
 class WorkOrder extends Equatable {
@@ -52,12 +53,12 @@ class WorkOrder extends Equatable {
     id: int.parse(map['id'].toString()),
     noWo: map['no_wo'].toString(),
     tanggal: map['tanggal'],
-    vehicleId: int.parse(map['vehicle_id'].toString()),
+    vehicleId: map['vehicle_id'],
     namaCustomer: map['nama_customer'],
-    mechanicId: int.parse(map['mechanic_id'].toString()),
+    mechanicId: map['mechanic_id'],
     status: map['status'],
-    total: double.parse(map['total'].toString()),
-    paid: double.parse(map['paid'].toString()),
+    total: map['total'],
+    paid: map['paid'],
     platNomor: map['plat_nomor'],
     merk: map['merk'],
     tipe: map['tipe'],

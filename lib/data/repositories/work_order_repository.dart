@@ -25,7 +25,7 @@ class WorkOrderRepository {
     LEFT JOIN mechanics m ON wo.mechanic_id = m.id
     ORDER BY wo.tanggal DESC
     ''');
-    print(maps.toList().toString());
+    //print(maps.toList().toString());
     return maps.map((e) => WorkOrder.fromMap(e)).toList();
   }
 
@@ -258,28 +258,45 @@ class WorkOrderRepository {
   // lib/data/repositories/work_order_repository.dart
 
   // Finish WO + cetak kwitansi
-  Future<void> finishWorkOrderAndPrint(int woId) async {
+  Future<void> finishWorkOrderAndPrint(
+    int woId,
+    double paid,
+    double percent,
+  ) async {
     final db = await dbHelper.database;
 
     await db.update(
       'work_orders',
-      {'status': 'finished'}, // atau 'paid' / 'completed_and_paid'
-      where: 'id = ?',
+      {
+        'status': 'finished',
+        'paid': paid,
+      }, // atau 'paid' / 'completed_and_paid'
+      where: 'no_wo = ?',
       whereArgs: [woId],
     );
-
-    // Optional: update paid = total jika belum lunas
-    await db.rawUpdate(
-      'UPDATE work_orders SET paid = total WHERE id = ? AND paid < total',
-      [woId],
+    await db.update(
+      'wo_items',
+      {'discount_percent': percent},
+      where: 'wo_id = ?',
+      whereArgs: [woId],
     );
+    // // Optional: update paid = total jika belum lunas
+    // await db.rawUpdate(
+    //   'UPDATE work_orders SET paid = total WHERE id = ? AND paid < total',
+    //   [woId],
+    // );
   }
 
   // Ambil data lengkap untuk kwitansi (sudah include diskon)
   Future<Map<String, dynamic>> getWorkOrderForReceipt(int woId) async {
     final db = await dbHelper.database;
-
-    final woMap = await db.query('work_orders', where: 'id = ?', limit: 1);
+    //print('Fetching WO for receipt: $woId');
+    final woMap = await db.query(
+      'work_orders',
+      where: 'no_wo = ?',
+      whereArgs: [woId],
+      limit: 1,
+    );
 
     if (woMap.isEmpty) throw Exception('WO tidak ditemukan');
 
@@ -300,7 +317,7 @@ class WorkOrderRepository {
   ''',
       [woId],
     );
-
+    // print('Items for receipt: ${woMap.toString()}');
     return {'wo': woMap.first, 'items': items};
   }
 }
