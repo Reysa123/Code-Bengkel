@@ -2,6 +2,7 @@
 // 2. lib/presentation/screens/home_screen.dart
 // ================================================
 import 'package:bengkel/data/models/work_order.dart';
+import 'package:bengkel/presentation/screens/kasir_screen.dart';
 import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
 import 'package:bengkel/presentation/screens/part_list_screen.dart';
 import 'package:bengkel/presentation/screens/purchse_form_screen.dart';
@@ -166,17 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Kasir / Pembayaran'),
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const WorkOrderAssignmentScreen(
-                    workOrder: WorkOrder(
-                      noWo: '260303104056',
-                      tanggal: '2026-03-03',
-                      vehicleId: 1,
-                      mechanicId: 1,
-                      total: 330000,
-                    ),
-                  ),
-                ),
+                MaterialPageRoute(builder: (_) => const KasirScreen()),
               ),
             ),
 

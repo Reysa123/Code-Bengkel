@@ -75,6 +75,7 @@ class WoItem extends Equatable {
     qty: map['qty'],
     harga: map['harga'],
     subtotal: map['subtotal'],
+    discountPercent: map['discount_percent'],
   );
 
   @override

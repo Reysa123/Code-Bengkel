@@ -208,7 +208,7 @@ class WorkOrderRepository {
     ''',
       [woId],
     );
-    print('list : ${maps.toString()}');
+   // print('list : ${maps.toString()}');
     return maps.map((map) {
       // Buat WoItem dengan data tambahan (display name & harga asli jika perlu)
       final item = WoItem.fromMap(map);
@@ -261,7 +261,7 @@ class WorkOrderRepository {
   Future<void> finishWorkOrderAndPrint(
     int woId,
     double paid,
-    double percent,
+    List<WoItem> items,
   ) async {
     final db = await dbHelper.database;
 
@@ -274,12 +274,15 @@ class WorkOrderRepository {
       where: 'no_wo = ?',
       whereArgs: [woId],
     );
-    await db.update(
-      'wo_items',
-      {'discount_percent': percent},
-      where: 'wo_id = ?',
-      whereArgs: [woId],
-    );
+    for (var item in items) {
+      await db.update(
+        'wo_items',
+        {'discount_percent': item.discountPercent},
+        where: 'id = ?',
+        whereArgs: [item.id],
+      );
+    }
+
     // // Optional: update paid = total jika belum lunas
     // await db.rawUpdate(
     //   'UPDATE work_orders SET paid = total WHERE id = ? AND paid < total',
@@ -288,7 +291,7 @@ class WorkOrderRepository {
   }
 
   // Ambil data lengkap untuk kwitansi (sudah include diskon)
-  Future<Map<String, dynamic>> getWorkOrderForReceipt(int woId) async {
+  Future<Map<String, dynamic>> getWorkOrderForReceipt(String woId) async {
     final db = await dbHelper.database;
     //print('Fetching WO for receipt: $woId');
     final woMap = await db.query(

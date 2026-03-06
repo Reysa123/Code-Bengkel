@@ -96,9 +96,7 @@ class _BillingScreenState extends State<BillingScreen> {
       await _repo.finishWorkOrderAndPrint(
         int.parse(widget.workOrder.noWo),
         _grandTotalAfterDisc,
-        ((_grandTotalBeforeDisc - _grandTotalAfterDisc) /
-                _grandTotalBeforeDisc) *
-            100,
+        _items,
       );
 
       // 2. Refresh WO di cubit (opsional)
@@ -106,9 +104,10 @@ class _BillingScreenState extends State<BillingScreen> {
 
       // 3. Cetak kwitansi
       final receiptData = await _repo.getWorkOrderForReceipt(
-        int.parse(widget.workOrder.noWo),
+        widget.workOrder.noWo,
       );
-      final wo = WorkOrder.fromMap(receiptData['wo']);
+      print('Data untuk cetak: ${receiptData.toString()}');
+      //final wo = WorkOrder.fromMap(receiptData['wo']);
       // final items = (receiptData['items'] as List)
       //     .map((e) => WoItem.fromMap(e))
       //     .toList();
