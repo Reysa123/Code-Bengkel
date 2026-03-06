@@ -1,10 +1,11 @@
+import 'package:bengkel/data/models/wo_item.dart';
 import 'package:bengkel/data/models/work_order.dart';
 import 'package:bengkel/utils/number_format.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-Future<void> printWorkOrderReceipt(WorkOrder wo, List<Map<String, dynamic>> items) async {
+Future<void> printWorkOrderReceipt(WorkOrder wo, List<WoItem> items) async {
   final pdf = pw.Document();
 
   pdf.addPage(
@@ -14,32 +15,50 @@ Future<void> printWorkOrderReceipt(WorkOrder wo, List<Map<String, dynamic>> item
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           // Header Kwitansi
-          pw.Center(child: pw.Text('KWITANSI RESMI', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold))),
-          pw.Center(child: pw.Text('BENGKEL ABC', style: pw.TextStyle(fontSize: 14))),
+          pw.Center(
+            child: pw.Text(
+              'KWITANSI RESMI',
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            ),
+          ),
+          pw.Center(
+            child: pw.Text('BENGKEL ABC', style: pw.TextStyle(fontSize: 14)),
+          ),
           pw.SizedBox(height: 8),
-          pw.Center(child: pw.Text('No WO: ${wo.noWo} | Tanggal: ${wo.tanggal}')),
+          pw.Center(
+            child: pw.Text('No WO: ${wo.noWo} | Tanggal: ${wo.tanggal}'),
+          ),
           pw.Divider(height: 20),
 
           // Info Pelanggan & Kendaraan
           pw.Text('Nama Pelanggan: ${wo.namaCustomer ?? "-"}'),
-          pw.Text('Kendaraan: ${wo.platNomor ?? "-"} - ${wo.merk ?? ""} ${wo.tipe ?? ""}'),
+          pw.Text(
+            'Kendaraan: ${wo.platNomor ?? "-"} - ${wo.merk ?? ""} ${wo.tipe ?? ""}',
+          ),
           pw.SizedBox(height: 16),
 
           // Tabel Item dengan Diskon
-          pw.Table.fromTextArray(
-            headers: ['Item', 'Qty', 'Harga', 'Disc %', 'Harga Setelah Disc', 'Subtotal'],
+          pw.TableHelper.fromTextArray(
+            headers: [
+              'Item',
+              'Qty',
+              'Harga',
+              'Disc %',
+              'Harga Setelah Disc',
+              'Subtotal',
+            ],
             data: items.map((item) {
-              final discPercent = (item['discount_percent'] as num?)?.toDouble() ?? 0.0;
-              final harga = (item['harga'] as num).toDouble();
-              final qty = item['qty'] as int;
-              final hargaAfterDisc = harga * (1 - discPercent / 100);
+              final discPercent = item.discountPercent;
+              final harga = item.harga;
+              final qty = item.qty;
+              final hargaAfterDisc = harga * (1 - (discPercent ?? 0.0) / 100);
               final subtotal = qty * hargaAfterDisc;
 
               return [
-                item['nama_item'] as String,
+                item.namaItem,
                 qty.toString(),
                 formatCurrency(harga),
-                '${discPercent.toStringAsFixed(1)}%',
+                '${discPercent?.toStringAsFixed(1)}%',
                 formatCurrency(hargaAfterDisc),
                 formatCurrency(subtotal),
               ];
@@ -60,7 +79,11 @@ Future<void> printWorkOrderReceipt(WorkOrder wo, List<Map<String, dynamic>> item
                 pw.Text('Total Sebelum Diskon: Rp ${nf.format(wo.total)}'),
                 pw.Text(
                   'TOTAL YANG HARUS DIBAYAR: Rp ${nf.format(wo.total)}',
-                  style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold, color: PdfColors.green800),
+                  style: pw.TextStyle(
+                    fontSize: 16,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.green800,
+                  ),
                 ),
               ],
             ),

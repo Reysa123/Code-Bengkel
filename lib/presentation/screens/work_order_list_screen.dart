@@ -1,6 +1,9 @@
 // lib/presentation/screens/work_order_list_screen.dart
 // 🔥 WORK ORDER LIST SCREEN LENGKAP (Full fitur: search, status badge, print, ubah status, delete)
 
+import 'dart:math';
+
+import 'package:bengkel/presentation/screens/billing_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_assignment_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_detail_screen.dart';
@@ -297,6 +300,15 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                                       ),
                                                 ),
                                               );
+                                            } else if (value == 'cetakbill') {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) => BillingScreen(
+                                                    workOrder: wo,
+                                                  ),
+                                                ),
+                                              );
                                             }
                                           },
                                           itemBuilder: (context) => [
@@ -311,6 +323,10 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                             const PopupMenuItem(
                                               value: 'cetakpart',
                                               child: Text('Cetak Part'),
+                                            ),
+                                            const PopupMenuItem(
+                                              value: 'cetakbill',
+                                              child: Text('Cetak Billing'),
                                             ),
                                           ],
                                         ),
