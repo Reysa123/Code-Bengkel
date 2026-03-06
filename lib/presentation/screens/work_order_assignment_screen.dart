@@ -1,5 +1,7 @@
 // lib/presentation/screens/work_order_assignment_screen.dart
 
+import 'package:bengkel/data/repositories/mechanic_repository.dart';
+import 'package:bengkel/data/repositories/work_order_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -7,7 +9,6 @@ import '../../data/models/work_order.dart';
 import '../../data/models/mechanic.dart';
 import '../../presentation/blocs/work_order_cubit.dart';
 import '../../presentation/blocs/mechanic_cubit.dart';
-import '../../data/repositories/work_order_repository.dart';
 
 class WorkOrderAssignmentScreen extends StatefulWidget {
   final WorkOrder workOrder;
@@ -22,14 +23,24 @@ class WorkOrderAssignmentScreen extends StatefulWidget {
 class _WorkOrderAssignmentScreenState extends State<WorkOrderAssignmentScreen> {
   List<Mechanic> selectedMechanics = [];
   bool _isLoading = false;
-
   final WorkOrderRepository _woRepo = WorkOrderRepository();
+  final MechanicRepository _meRepo = MechanicRepository();
+  cek() async {
+    final assignedMechanics = await _meRepo.getAll();
+    print(widget.workOrder.mechanicId);
+    setState(() {
+      selectedMechanics = assignedMechanics
+          .where((v) => v.id == widget.workOrder.mechanicId)
+          .toList();
+    });
+    print(selectedMechanics.toList().toString());
+  }
 
   @override
   void initState() {
     super.initState();
     context.read<MechanicCubit>().loadAll();
-
+    cek();
     // Pre-select mekanik yang sudah ditugaskan (jika ada data dari join sebelumnya)
     // Misalnya: jika WorkOrder sudah punya list assignedMechanics dari repository
     // Untuk sekarang kita kosongkan dulu, atau ambil dari state jika sudah diimplementasikan
@@ -47,10 +58,10 @@ class _WorkOrderAssignmentScreenState extends State<WorkOrderAssignmentScreen> {
 
     try {
       final mechanicIds = selectedMechanics.map((m) => m.id!).toList();
-
+      print(mechanicIds);
       // Panggil repository untuk assign multiple mechanics
       await _woRepo.assignMechanics(
-        widget.workOrder.id!,
+        widget.workOrder.noWo,
         mechanicIds,
         // Optional: newStatus: 'in_progress'
       );
@@ -86,58 +97,160 @@ class _WorkOrderAssignmentScreenState extends State<WorkOrderAssignmentScreen> {
   }
 
   void _showSelectMechanicsDialog() {
+    // Pastikan data mekanik sudah dimuat sebelum dialog muncul
+    if (context.read<MechanicCubit>().state is! MechanicLoaded) {
+      context.read<MechanicCubit>().loadAll();
+      // Optional: tampilkan loading sementara
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Memuat daftar mekanik...')));
+    }
+
     showDialog(
       context: context,
-      builder: (context) {
-        final availableMechanics =
-            (context.read<MechanicCubit>().state as MechanicLoaded?)
-                ?.mechanics ??
-            [];
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setStates) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: [
+                Icon(Icons.engineering, color: Colors.indigo),
+                const SizedBox(width: 12),
+                const Text(
+                  'Pilih Mekanik',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: 320, // beri ruang lebih agar tidak terlalu sempit
+              child: BlocBuilder<MechanicCubit, MechanicState>(
+                builder: (context, state) {
+                  if (state is MechanicLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-        return AlertDialog(
-          title: const Text('Pilih Mekanik'),
-          content: SizedBox(
-            width: double.maxFinite,
-            height: 300,
-            child: ListView.builder(
-              itemCount: availableMechanics.length,
-              itemBuilder: (context, index) {
-                final mechanic = availableMechanics[index];
-                final isSelected = selectedMechanics.contains(mechanic);
+                  if (state is MechanicError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Gagal memuat: ${state.message}',
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: () =>
+                                context.read<MechanicCubit>().loadAll(),
+                            child: const Text('Coba Lagi'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
 
-                return CheckboxListTile(
-                  title: Text(mechanic.nama),
-                  subtitle: mechanic.noHp != null ? Text(mechanic.noHp!) : null,
-                  value: isSelected,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value == true) {
-                        selectedMechanics.add(mechanic);
-                      } else {
-                        selectedMechanics.remove(mechanic);
-                      }
-                    });
-                  },
-                  activeColor: Colors.blue.shade700,
-                );
-              },
+                  if (state is MechanicLoaded) {
+                    print('state: $state');
+                    final availableMechanics = state.mechanics;
+
+                    if (availableMechanics.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'Belum ada data mekanik.\nTambahkan mekanik terlebih dahulu.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      itemCount: availableMechanics.length,
+                      itemBuilder: (context, index) {
+                        final mechanic = availableMechanics[index];
+                        bool isSelected = selectedMechanics.contains(mechanic);
+
+                        return CheckboxListTile(
+                          title: Text(
+                            mechanic.nama,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          subtitle: mechanic.noHp.isNotEmpty
+                              ? Text(
+                                  mechanic.noHp,
+                                  style: TextStyle(color: Colors.grey.shade700),
+                                )
+                              : null,
+                          secondary: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.indigo.shade100,
+                            child: Text(
+                              mechanic.nama.isNotEmpty
+                                  ? mechanic.nama[0].toUpperCase()
+                                  : '?',
+                              style: TextStyle(color: Colors.indigo.shade700),
+                            ),
+                          ),
+                          value: isSelected,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              if (value == true) {
+                                if (!selectedMechanics.contains(mechanic)) {
+                                  selectedMechanics.add(mechanic);
+                                  setStates(() {
+                                    isSelected = selectedMechanics.contains(
+                                      mechanic,
+                                    );
+                                  }); // refresh dialog
+                                }
+                              } else {
+                                selectedMechanics.remove(mechanic);
+                                setStates(() {
+                                  isSelected = selectedMechanics.contains(
+                                    mechanic,
+                                  );
+                                });
+                              }
+                            });
+                          },
+                          activeColor: Colors.indigo,
+                          checkColor: Colors.white,
+                        );
+                      },
+                    );
+                  }
+
+                  return const Center(child: Text('Tidak ada data'));
+                },
+              ),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {}); // refresh UI chips
-                Navigator.pop(context);
-              },
-              child: const Text('Simpan Pilihan'),
-            ),
-          ],
-        );
-      },
+            actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(
+                  'Batal',
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.indigo.shade700,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {}); // refresh chips di layar utama
+                  Navigator.pop(dialogContext);
+                },
+                child: const Text('Simpan Pilihan'),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 

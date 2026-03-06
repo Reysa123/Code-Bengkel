@@ -195,6 +195,8 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
     if (_formKey.currentState!.validate() &&
         _selectedVehicle != null &&
         _selectedItems.isNotEmpty) {
+      print('Saving Work Order with data:');
+      print(_selectedItems.toList().toString());
       final wo = WorkOrder(
         noWo: _noWoController.text,
         tanggal: DateFormat('yyyy-MM-dd').format(_selectedDate),
@@ -204,6 +206,9 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
         status: 'pending',
       );
       context.read<WorkOrderCubit>().createWorkOrder(wo, _selectedItems);
+       ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Simpan data  berhasil!'), backgroundColor: Colors.green),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lengkapi data & minimal 1 item')),
@@ -374,18 +379,20 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
 
   // Fungsi helper untuk menambah ke list utama
   void _addItemToWO(String type, int id, String nama, double harga) {
+    print('Adding item to WO: type=$type, id=$id, nama=$nama, harga=$harga');
     setState(() {
       // Cek duplikasi seperti di createpkb.dart (opsional)
       bool exists = _selectedItems.any(
         (item) => item.itemId == id && item.type == type,
       );
-
+      print('exists: $exists');
       if (exists) {
         // Jika sudah ada, tambahkan Qty (khusus Part)
         int idx = _selectedItems.indexWhere(
           (item) => item.itemId == id && item.type == type,
         );
         _selectedItems[idx] = WoItem(
+          woId: int.parse(_noWoController.text),
           type: type,
           itemId: id,
           namaItem: nama,
@@ -396,6 +403,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
       } else {
         _selectedItems.add(
           WoItem(
+            woId: int.parse(_noWoController.text),
             type: type,
             itemId: id,
             namaItem: nama,

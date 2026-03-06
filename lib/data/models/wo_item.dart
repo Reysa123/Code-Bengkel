@@ -8,9 +8,11 @@ class WoItem extends Equatable {
   final String namaItem;
   final int qty;
   final double harga;
+  final double? discountPercent; // diskon % per item (0–100)
+  final double? discountAmount;
   final double subtotal;
 
-   const WoItem({
+  const WoItem({
     this.id,
     this.woId = 0,
     required this.type,
@@ -18,9 +20,16 @@ class WoItem extends Equatable {
     required this.namaItem,
     required this.qty,
     required this.harga,
+    this.discountPercent = 0.0,
+    this.discountAmount,
     required this.subtotal,
   });
+  double get finalPrice {
+    final disc = (harga * (discountPercent ?? 0) / 100);
+    return harga - disc;
+  }
 
+  double get finalSubtotal => qty * finalPrice;
   Map<String, dynamic> toMap() => {
     'id': id,
     'wo_id': woId,
@@ -29,6 +38,7 @@ class WoItem extends Equatable {
     'nama_item': namaItem,
     'qty': qty,
     'harga': harga,
+    'discount_percent': discountPercent,
     'subtotal': subtotal,
   };
 
@@ -44,5 +54,15 @@ class WoItem extends Equatable {
   );
 
   @override
-  List<Object?> get props => [id, woId, type, itemId, namaItem, qty];
+  List<Object?> get props => [
+    id,
+    woId,
+    type,
+    itemId,
+    namaItem,
+    qty,
+    harga,
+    discountPercent,
+    subtotal,
+  ];
 }

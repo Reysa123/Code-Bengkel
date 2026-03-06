@@ -78,7 +78,7 @@ class DatabaseHelper {
     await db.execute('''CREATE TABLE wo_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       wo_id INTEGER, type TEXT, item_id INTEGER,
-      qty INTEGER DEFAULT 1, harga REAL, subtotal REAL,
+      qty INTEGER DEFAULT 1, harga REAL, discount_percent REAL DEFAULT 0, subtotal REAL,
       FOREIGN KEY (wo_id) REFERENCES work_orders(id)
     )''');
 

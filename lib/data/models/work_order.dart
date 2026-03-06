@@ -38,30 +38,50 @@ class WorkOrder extends Equatable {
   });
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'no_wo': noWo,
-        'tanggal': tanggal,
-        'vehicle_id': vehicleId,
-        'mechanic_id': mechanicId,
-        'status': status,
-        'total': total,
-        'paid': paid,
-      };
+    'id': id,
+    'no_wo': noWo,
+    'tanggal': tanggal,
+    'vehicle_id': vehicleId,
+    'mechanic_id': mechanicId,
+    'status': status,
+    'total': total,
+    'paid': paid,
+  };
 
   factory WorkOrder.fromMap(Map<String, dynamic> map) => WorkOrder(
-        id: map['id'],
-        noWo: map['no_wo'],
-        tanggal: map['tanggal'],
-        vehicleId: map['vehicle_id'],
-        mechanicId: map['mechanic_id'],
-        status: map['status'],
-        total: map['total'],
-        paid: map['paid'] ?? 0,
-        platNomor: map['plat_nomor'],
-        merk: map['merk'],
-        namaMekanik: map['nama_mekanik'],
-      );
+    id: int.parse(map['id'].toString()),
+    noWo: map['no_wo'].toString(),
+    tanggal: map['tanggal'],
+    vehicleId: int.parse(map['vehicle_id'].toString()),
+    namaCustomer: map['nama_customer'],
+    mechanicId: int.parse(map['mechanic_id'].toString()),
+    status: map['status'],
+    total: double.parse(map['total'].toString()),
+    paid: double.parse(map['paid'].toString()),
+    platNomor: map['plat_nomor'],
+    merk: map['merk'],
+    tipe: map['tipe'],
+    tahun: int.parse(map['tahun'].toString()),
+    warna: map['warna'],
+    namaMekanik: map['nama_mekanik'],
+  );
 
   @override
-  List<Object?> get props => [id, noWo, status, total];
+  List<Object?> get props => [
+    id,
+    noWo,
+    tanggal,
+    vehicleId,
+    mechanicId,
+    status,
+    total,
+    paid,
+    platNomor,
+    merk,
+    tipe,
+    tahun,
+    warna,
+    namaCustomer,
+    namaMekanik,
+  ];
 }

@@ -2,6 +2,8 @@
 // 🔥 WORK ORDER LIST SCREEN LENGKAP (Full fitur: search, status badge, print, ubah status, delete)
 
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
+import 'package:bengkel/presentation/screens/work_order_assignment_screen.dart';
+import 'package:bengkel/presentation/screens/work_order_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -42,7 +44,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Mencetak Work Order...')));
-    await printBilling(wo, []); // kosong dulu, nanti bisa di-improve
+    // await printBilling(wo, []); // kosong dulu, nanti bisa di-improve
   }
 
   // ====================== UBAH STATUS ======================
@@ -274,8 +276,27 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                           onSelected: (value) {
                                             if (value == 'status') {
                                               _showStatusDialog(wo);
-                                            } else if (value == 'delete') {
-                                              _showDeleteConfirm(wo);
+                                            } else if (value == 'cetakpart') {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      WorkOrderDetailScreen(
+                                                        workOrder: wo,
+                                                      ),
+                                                ),
+                                              );
+                                            } else if (value == 'addmekanik') {
+                                              // Navigasi ke screen penambahan mekanik
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      WorkOrderAssignmentScreen(
+                                                        workOrder: wo,
+                                                      ),
+                                                ),
+                                              );
                                             }
                                           },
                                           itemBuilder: (context) => [
@@ -284,8 +305,12 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               child: Text('Ubah Status'),
                                             ),
                                             const PopupMenuItem(
-                                              value: 'delete',
-                                              child: Text('Hapus'),
+                                              value: 'addmekanik',
+                                              child: Text('Tambah Mekanik'),
+                                            ),
+                                            const PopupMenuItem(
+                                              value: 'cetakpart',
+                                              child: Text('Cetak Part'),
                                             ),
                                           ],
                                         ),
