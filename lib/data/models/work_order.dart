@@ -18,6 +18,8 @@ class WorkOrder extends Equatable {
   final String? warna;
   final String? namaCustomer;
   final String? namaMekanik;
+  final int? kmTerakhir;
+  final String? catatan;
 
   const WorkOrder({
     this.id,
@@ -35,6 +37,8 @@ class WorkOrder extends Equatable {
     this.warna,
     this.namaCustomer,
     this.namaMekanik,
+    this.kmTerakhir,
+    this.catatan,
   });
 
   Map<String, dynamic> toMap() => {
@@ -64,6 +68,8 @@ class WorkOrder extends Equatable {
     tahun: int.parse(map['tahun'].toString()),
     warna: map['warna'],
     namaMekanik: map['nama_mekanik'],
+    kmTerakhir: map['km_terakhir'],
+    catatan: map['catatan'],
   );
 
   @override
@@ -83,5 +89,7 @@ class WorkOrder extends Equatable {
     warna,
     namaCustomer,
     namaMekanik,
+    kmTerakhir,
+    catatan,
   ];
 }

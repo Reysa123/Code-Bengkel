@@ -6,6 +6,44 @@ import '../models/wo_item.dart';
 
 class WorkOrderRepository {
   final dbHelper = DatabaseHelper.instance;
+  Future<List<Map<String, dynamic>>> getAllByWo(String noWo) async {
+    final db = await dbHelper.database;
+    final maps = await db.rawQuery(
+      '''
+      SELECT 
+      wo.*,
+      wi.id AS item_id,
+      wi.type AS item_type,
+      wi.item_id AS item_item_id,
+      CASE 
+        WHEN wi.type = 'service' THEN s.nama
+        WHEN wi.type = 'part' THEN p.nama
+        
+      END AS nama_item,
+      wi.qty AS item_qty,
+      wi.harga AS item_harga,
+      wi.subtotal AS item_subtotal,
+      v.plat_nomor,
+      v.merk,
+      v.tipe,
+      v.tahun,
+      v.warna,
+      c.nama AS nama_customer,
+      m.nama AS nama_mekanik
+    FROM work_orders wo
+    LEFT JOIN wo_items wi ON wo.no_wo = wi.wo_id
+    LEFT JOIN parts p ON wi.type = 'part' AND wi.item_id = p.id
+    LEFT JOIN services s ON wi.type = 'service' AND wi.item_id = s.id
+    LEFT JOIN vehicles v ON wo.vehicle_id = v.id
+    LEFT JOIN customers c ON v.customer_id = c.id
+    LEFT JOIN mechanics m ON wo.mechanic_id = m.id
+    WHERE wo.no_wo = ?
+    ''',
+      [noWo],
+    );
+    //print(maps.toList().toString());
+    return maps;
+  }
 
   Future<List<WorkOrder>> getAll() async {
     final db = await dbHelper.database;
@@ -274,20 +312,19 @@ class WorkOrderRepository {
       [woId],
     );
   }
+
   // lib/data/repositories/work_order_repository.dart
-Future<void>kasirFinishWorkOrder(String woId, double paid) async {
+  Future<void> kasirFinishWorkOrder(String woId, double paid) async {
     final db = await dbHelper.database;
 
     await db.update(
       'work_orders',
-      {
-        'status': 'paid',
-        'paid': paid,
-      }, // atau 'completed_and_paid'
+      {'status': 'paid', 'paid': paid}, // atau 'completed_and_paid'
       where: 'no_wo = ?',
       whereArgs: [woId],
     );
   }
+
   // Finish WO + cetak kwitansi
   Future<void> finishWorkOrderAndPrint(
     int woId,

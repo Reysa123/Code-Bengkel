@@ -70,6 +70,7 @@ class DatabaseHelper {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       no_wo TEXT UNIQUE NOT NULL, tanggal TEXT NOT NULL,
       vehicle_id INTEGER, mechanic_id INTEGER,
+      catatan TEXT,km_terakhir INTEGER DEFAULT 0,
       status TEXT DEFAULT 'pending', total REAL DEFAULT 0, paid REAL DEFAULT 0,
       FOREIGN KEY (vehicle_id) REFERENCES vehicles(id),
       FOREIGN KEY (mechanic_id) REFERENCES mechanics(id)

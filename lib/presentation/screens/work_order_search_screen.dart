@@ -1,6 +1,8 @@
 import 'package:bengkel/core/database/database_helper.dart';
 import 'package:bengkel/data/models/vehicle.dart';
 import 'package:bengkel/data/models/work_order.dart';
+import 'package:bengkel/data/repositories/work_order_repository.dart';
+import 'package:bengkel/presentation/screens/edit_work_order_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_detail_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_form_screen.dart';
 import 'package:flutter/material.dart';
@@ -24,39 +26,42 @@ class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
   Widget _buildSearchInput(BuildContext context) {
     final TextEditingController searchController = TextEditingController();
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: searchController,
-        textCapitalization: TextCapitalization.characters,
-        decoration: InputDecoration(
-          hintText: 'Cari No. Work Order...',
-          hintStyle: TextStyle(color: Colors.grey[400]),
-          border: InputBorder.none,
-          prefixIcon: const Icon(
-            Icons.assignment_rounded,
-            color: Colors.blueAccent,
-          ),
-          suffixIcon: IconButton(
-            icon: const Icon(
-              Icons.arrow_forward_rounded,
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: searchController,
+          textCapitalization: TextCapitalization.characters,
+          decoration: InputDecoration(
+            hintText: 'Cari No. Work Order...',
+            hintStyle: TextStyle(color: Colors.grey[400]),
+            border: InputBorder.none,
+            prefixIcon: const Icon(
+              Icons.assignment_rounded,
               color: Colors.blueAccent,
             ),
-            onPressed: () => _searchWorkOrder(searchController.text, context),
+            suffixIcon: IconButton(
+              icon: const Icon(
+                Icons.arrow_forward_rounded,
+                color: Colors.blueAccent,
+              ),
+              onPressed: () => _searchWorkOrder(searchController.text, context),
+            ),
           ),
+          onSubmitted: (val) => _searchWorkOrder(val, context),
         ),
-        onSubmitted: (val) => _searchWorkOrder(val, context),
       ),
     );
   }
@@ -120,31 +125,13 @@ class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
   Future<void> _searchWorkOrder(String query, BuildContext context) async {
     if (query.isEmpty) return;
 
-    // Cari di database melalui Cubit/Provider/Repository
-    // Misal kita ambil dari database local:
-    final db = await DatabaseHelper.instance.database;
-    final List<Map<String, dynamic>> result = await db.query(
-      'work_orders',
-      where: 'no_wo = ?',
-      whereArgs: [query.toUpperCase()],
-    );
-
+    final result = await WorkOrderRepository().getAllByWo(query);
     if (result.isNotEmpty) {
-      print(result.toList().toString());
-      // Jika ADA, arahkan ke Detail Screen
-
-      final vehicle = await db.query(
-        'vehicles',
-        where: 'id = ?',
-        whereArgs: [result.first['vehicle_id']],
-      );
-
+      print(result.toString());
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => WorkOrderFormScreen(
-            initialVehicle: Vehicle.fromMap(vehicle.first),
-          ),
+          builder: (context) => EditWorkOrderScreen(initialVehicle: result),
         ),
       );
     } else {
