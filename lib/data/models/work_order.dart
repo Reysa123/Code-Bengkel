@@ -48,6 +48,8 @@ class WorkOrder extends Equatable {
     'vehicle_id': vehicleId,
     'mechanic_id': mechanicId,
     'status': status,
+    'km_terakhir': kmTerakhir,
+    'catatan': catatan,
     'total': total,
     'paid': paid,
   };
