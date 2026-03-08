@@ -40,7 +40,9 @@ class _PartListScreenState extends State<PartListScreen> {
 
     final kodeController = TextEditingController(text: part?.kode);
     final namaController = TextEditingController(text: part?.nama);
-    final stokController = TextEditingController(text: part?.stok.toString());
+    final stokController = TextEditingController(
+      text: part?.stok.toString() ?? '0',
+    );
     final hargaBeliController = TextEditingController(
       text: NumberFormat("#,###").format(part?.hargaBeli ?? 0),
     );
@@ -48,60 +50,105 @@ class _PartListScreenState extends State<PartListScreen> {
       text: NumberFormat("#,###").format(part?.hargaJual ?? 0),
     );
 
+    // 1. Bungkus Column dengan Form agar bisa menggunakan validator bawaan Flutter
+    final formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(isEdit ? 'Edit Part' : 'Tambah Part Baru'),
         content: SizedBox(
-          width: double.maxFinite,
-          height: double.maxFinite,
+          width: MediaQuery.of(context).size.width * 0.9,
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: kodeController,
-                  decoration: const InputDecoration(labelText: 'Kode Part *'),
-                  textCapitalization: TextCapitalization.characters,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: namaController,
-                  decoration: const InputDecoration(labelText: 'Nama Part *'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: stokController,
-                  decoration: const InputDecoration(labelText: 'Stok Awal'),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    ThousandsSeparatorInputFormatter(),
-                  ],
-                  controller: hargaBeliController,
-                  decoration: const InputDecoration(
-                    labelText: 'Harga Beli (Rp)',
-                    prefixText: 'Rp ',
+            child: Form(
+              key: formKey, // Tambahkan key di sini
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    // Ubah TextField jadi TextFormField
+                    controller: kodeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Kode Part *',
+                      border: OutlineInputBorder(),
+                    ),
+                    textCapitalization: TextCapitalization.characters,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Kode wajib diisi'
+                        : null,
                   ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    ThousandsSeparatorInputFormatter(),
-                  ],
-                  controller: hargaJualController,
-                  decoration: const InputDecoration(
-                    labelText: 'Harga Jual (Rp) *',
-                    prefixText: 'Rp ',
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: namaController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nama Part *',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Nama wajib diisi'
+                        : null,
                   ),
-                  keyboardType: TextInputType.number,
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: stokController,
+                    readOnly:
+                        isEdit, // Biasanya stok tidak diubah langsung di edit part (via transaksi)
+                    decoration: const InputDecoration(
+                      labelText: 'Stok Awal',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: hargaBeliController,
+                    decoration: const InputDecoration(
+                      labelText: 'Harga Beli (Rp)',
+                      prefixText: 'Rp ',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      ThousandsSeparatorInputFormatter(),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: hargaJualController,
+                    decoration: const InputDecoration(
+                      labelText: 'Harga Jual (Rp) *',
+                      prefixText: 'Rp ',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      ThousandsSeparatorInputFormatter(),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Harga jual wajib diisi';
+                      }
+
+                      // Validasi Logika: Harga Jual vs Harga Beli
+                      final hJual =
+                          double.tryParse(value.replaceAll(',', '')) ?? 0;
+                      final hBeli =
+                          double.tryParse(
+                            hargaBeliController.text.replaceAll(',', ''),
+                          ) ??
+                          0;
+
+                      if (hJual < hBeli) {
+                        return 'Harga jual tidak boleh < harga beli';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -111,51 +158,64 @@ class _PartListScreenState extends State<PartListScreen> {
             child: const Text('Batal'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isEdit
+                  ? Colors.green
+                  : AppConstants.primaryColor,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
-              if (kodeController.text.isEmpty ||
-                  namaController.text.isEmpty ||
-                  hargaJualController.text.isEmpty) {
+              // Trigger validasi Form
+              if (formKey.currentState!.validate()) {
+                final stok = int.tryParse(stokController.text) ?? 0;
+
+                final hargaBeli =
+                    double.tryParse(
+                      hargaBeliController.text.replaceAll(',', ''),
+                    ) ??
+                    0;
+
+                final hargaJual =
+                    double.tryParse(
+                      hargaJualController.text.replaceAll(',', ''),
+                    ) ??
+                    0;
+
+                // 2. Buat objek Part baru
+                final partData = Part(
+                  id: isEdit
+                      ? part.id
+                      : null, // ID tetap jika edit, null jika baru
+                  kode: kodeController.text.trim().toUpperCase(),
+                  nama: namaController.text.trim(),
+                  stok: stok,
+                  hargaBeli: hargaBeli,
+                  hargaJual: hargaJual,
+                );
+
+                // 3. Eksekusi ke Cubit berdasarkan status
+                if (isEdit) {
+                  // Pastikan di PartCubit kamu sudah ada method updatePart
+                  context.read<PartCubit>().addPart(partData);
+                } else {
+                  context.read<PartCubit>().addPart(partData);
+                }
+
+                // 4. Feedback ke User
+                Navigator.pop(context); // Tutup Dialog
+
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Kode, Nama & Harga Jual wajib diisi'),
+                  SnackBar(
+                    content: Text(
+                      isEdit
+                          ? 'Perubahan berhasil disimpan'
+                          : 'Part baru berhasil ditambahkan',
+                    ),
+                    backgroundColor: isEdit ? Colors.blue : Colors.green,
+                    behavior: SnackBarBehavior.floating,
                   ),
                 );
-                return;
               }
-
-              final stok = int.tryParse(stokController.text) ?? 0;
-              final hargaBeli =
-                  double.tryParse(
-                    hargaBeliController.text.replaceAll(',', ''),
-                  ) ??
-                  0;
-              final hargaJual =
-                  double.tryParse(
-                    hargaJualController.text.replaceAll(',', ''),
-                  ) ??
-                  0;
-
-              final newPart = Part(
-                id: part?.id,
-                kode: kodeController.text.trim().toUpperCase(),
-                nama: namaController.text.trim(),
-                stok: stok,
-                hargaBeli: hargaBeli,
-                hargaJual: hargaJual,
-              );
-
-              if (isEdit) {
-                // Update (tambahkan method updatePart di PartCubit jika belum ada)
-                // Untuk sementara pakai addPart (akan insert baru, kamu bisa improve nanti)
-                context.read<PartCubit>().addPart(newPart);
-              } else {
-                context.read<PartCubit>().addPart(newPart);
-              }
-
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Part berhasil disimpan')),
-              );
             },
             child: Text(isEdit ? 'Simpan Perubahan' : 'Tambah Part'),
           ),
@@ -403,6 +463,7 @@ class _PartListScreenState extends State<PartListScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Tambah Part'),
         backgroundColor: AppConstants.primaryColor,
+        foregroundColor: Colors.white,
       ),
     );
   }

@@ -41,6 +41,7 @@ class _BillingScreenState extends State<BillingScreen> {
 
       final loadedItems = await repo.getWoItems(
         int.parse(widget.workOrder.noWo),
+        'completed',
       );
       setState(() {
         _items = loadedItems;
@@ -120,7 +121,7 @@ class _BillingScreenState extends State<BillingScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Pembayaran lunas! Kwitansi dicetak.'),
+          content: Text('Billing Komplit! Kwitansi dicetak.'),
           backgroundColor: Colors.green,
         ),
       );
@@ -375,11 +376,12 @@ class _BillingScreenState extends State<BillingScreen> {
     switch (status.toLowerCase()) {
       case 'pending':
         return Colors.orange;
-      case 'in_progress':
+      case 'on_progress':
         return Colors.blue;
       case 'completed':
         return Colors.green;
       case 'finished':
+        return Colors.red.shade200;
       case 'paid':
         return Colors.purple;
       default:

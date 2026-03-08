@@ -32,7 +32,7 @@ class AppConstants {
 
   // ==================== STATUS WORK ORDER ====================
   static const String statusPending = 'pending';
-  static const String statusInProgress = 'in_progress';
+  static const String statusInProgress = 'on_progress';
   static const String statusCompleted = 'completed';
   static const String statusPaid = 'paid';
   static const String statusCancelled = 'cancelled';
@@ -42,8 +42,8 @@ class AppConstants {
   static const String itemTypePart = 'part';
 
   // ==================== COLORS ====================
-  static const Color primaryColor = Color(0xFF3F51B5);     // Indigo
-  static const Color secondaryColor = Color(0xFF00BCD4);   // Cyan
+  static const Color primaryColor = Color(0xFF3F51B5); // Indigo
+  static const Color secondaryColor = Color(0xFF00BCD4); // Cyan
   static const Color successColor = Color(0xFF4CAF50);
   static const Color warningColor = Color(0xFFFFC107);
   static const Color errorColor = Color(0xFFF44336);
@@ -71,7 +71,7 @@ class AppConstants {
   static const String currencyLocale = 'id_ID';
 
   // ==================== DEFAULT VALUES ====================
-  static const double defaultTax = 0.0;           // pajak (bisa diubah nanti)
+  static const double defaultTax = 0.0; // pajak (bisa diubah nanti)
   static const int defaultQty = 1;
   static const double defaultHarga = 0.0;
 }

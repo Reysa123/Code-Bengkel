@@ -1,3 +1,4 @@
+import 'package:bengkel/data/repositories/vehicle_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/vehicle.dart';
@@ -33,9 +34,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cari Kendaraan (Plat Nomor)'),
-      ),
+      appBar: AppBar(title: const Text('Cari Kendaraan (Plat Nomor)')),
       body: Column(
         children: [
           // Input Pencarian
@@ -77,12 +76,14 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
 
                 if (state is VehicleLoaded) {
                   // Jika search kosong, tampilkan semua atau instruksi
-                  final listToShow = _searchController.text.isEmpty 
-                      ? state.vehicles 
+                  final listToShow = _searchController.text.isEmpty
+                      ? state.vehicles
                       : _displayList;
 
                   if (listToShow.isEmpty) {
-                    return const Center(child: Text('Kendaraan tidak ditemukan'));
+                    return const Center(
+                      child: Text('Kendaraan tidak ditemukan'),
+                    );
                   }
 
                   return ListView.separated(
@@ -91,23 +92,41 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                     itemBuilder: (context, index) {
                       final vehicle = listToShow[index];
                       return ListTile(
-                        leading: const CircleAvatar(child: Icon(Icons.directions_car)),
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.directions_car),
+                        ),
                         title: Text(
                           vehicle.platNomor,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                         ),
                         subtitle: Text('${vehicle.merk} ${vehicle.tipe}'),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: () {
+                        onTap: () async {
+                          String vehicles = await VehicleRepository()
+                              .cekKendaraan(vehicle.id!);
                           // Navigasi ke Form WO dengan data kendaraan terpilih
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => WorkOrderFormScreen(
-                                initialVehicle: vehicle,
+
+                          if (vehicles != 'ok') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(vehicles),
+                                backgroundColor: Colors.red,
                               ),
-                            ),
-                          );
+                            );
+                            return;
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => WorkOrderFormScreen(
+                                  initialVehicle: vehicle,
+                                ),
+                              ),
+                            );
+                          }
                         },
                       );
                     },

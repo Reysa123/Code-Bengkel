@@ -38,7 +38,12 @@ class WorkOrderRepository {
       print('Assigning new mechanics: $mechanicIds');
       // Insert baru
       for (final mid in mechanicIds) {
-        await txn.update('work_orders', {'no_wo': woId, 'mechanic_id': mid});
+        await txn.update(
+          'work_orders',
+          {'mechanic_id': mid, 'status': 'on_progress'},
+          where: 'no_wo = ?',
+          whereArgs: [woId],
+        );
       }
     });
   }
@@ -52,7 +57,7 @@ class WorkOrderRepository {
     print('Inserting Work Order: ${items.map((i) => i.toString()).toList()}');
     final db = await dbHelper.database;
     //final woId = await insert(wo);
-    // await db.insert('work_orders', wo.toMap());
+    await db.insert('work_orders', wo.toMap());
     print(items.length);
     for (var item in items) {
       print(item.toString());
@@ -163,8 +168,7 @@ class WorkOrderRepository {
     });
   }
 
-  // Update status ke completed + optional deduct stock
-  Future<void> completeWorkOrder(int woId, {bool deductStock = true}) async {
+  Future<void> cetakPartWorkOrder(int woId, {bool deductStock = true}) async {
     final db = await dbHelper.database;
 
     if (deductStock) {
@@ -176,15 +180,30 @@ class WorkOrderRepository {
     }
 
     await db.update(
-      'work_orders',
+      'wo_items',
       {'status': 'completed'},
-      where: 'no_wo = ?',
+      where: 'wo_id = ?',
       whereArgs: [woId],
     );
   }
 
+  // Update status ke completed + optional deduct stock
+  Future<void> completedWorkOrder(String woId) async {
+    final db = await dbHelper.database;
+    try {
+      await db.update(
+        'work_orders',
+        {'status': 'completed'},
+        where: 'no_wo = ?',
+        whereArgs: [woId],
+      );
+    } catch (e) {
+      print('Error completing work order: $e');
+    }
+  }
+
   // Mengambil semua item dari Work Order tertentu
-  Future<List<WoItem>> getWoItems(int woId) async {
+  Future<List<WoItem>> getWoItems(int woId, String status) async {
     final db = await dbHelper.database;
 
     final List<Map<String, dynamic>> maps = await db.rawQuery(
@@ -203,12 +222,12 @@ class WorkOrderRepository {
       FROM wo_items wi
       LEFT JOIN services s ON wi.item_id = s.id AND wi.type = 'service'
       LEFT JOIN parts p ON wi.item_id = p.id AND wi.type = 'part'
-      WHERE wi.wo_id = ?
+      WHERE wi.wo_id = ? AND wi.status = ?
       ORDER BY wi.id ASC
     ''',
-      [woId],
+      [woId, status],
     );
-   // print('list : ${maps.toString()}');
+    // print('list : ${maps.toString()}');
     return maps.map((map) {
       // Buat WoItem dengan data tambahan (display name & harga asli jika perlu)
       final item = WoItem.fromMap(map);
@@ -256,7 +275,19 @@ class WorkOrderRepository {
     );
   }
   // lib/data/repositories/work_order_repository.dart
+Future<void>kasirFinishWorkOrder(String woId, double paid) async {
+    final db = await dbHelper.database;
 
+    await db.update(
+      'work_orders',
+      {
+        'status': 'paid',
+        'paid': paid,
+      }, // atau 'completed_and_paid'
+      where: 'no_wo = ?',
+      whereArgs: [woId],
+    );
+  }
   // Finish WO + cetak kwitansi
   Future<void> finishWorkOrderAndPrint(
     int woId,

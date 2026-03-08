@@ -95,7 +95,7 @@ class _PurchaseFormScreenState extends State<PurchaseFormScreen> {
                   builder: (context, state) {
                     if (state is PartLoaded) {
                       return DropdownButtonFormField<Part>(
-                        value: selectedPart,
+                        initialValue: selectedPart,
                         isExpanded: true,
                         decoration: InputDecoration(
                           labelText: 'Pilih Part',
@@ -420,7 +420,10 @@ class _PurchaseFormScreenState extends State<PurchaseFormScreen> {
                   if (state is SupplierLoaded) {
                     return DropdownButtonFormField<Supplier>(
                       initialValue: _selectedSupplier,
-                      decoration: const InputDecoration(labelText: 'Supplier'),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Supplier',
+                      ),
                       items: state.suppliers
                           .map(
                             (s) =>

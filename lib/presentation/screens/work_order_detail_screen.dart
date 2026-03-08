@@ -35,7 +35,10 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
   Future<void> _loadWoItems() async {
     setState(() => _isLoading = true);
     try {
-      final items = await _repo.getWoItems(int.parse(widget.workOrder.noWo));
+      final items = await _repo.getWoItems(
+        int.parse(widget.workOrder.noWo),
+        'pending',
+      );
       setState(() {
         _woItems = items.where((v) => v.type == 'part').toList();
       });
@@ -86,7 +89,7 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
       }
 
       // 2. Jika stok OK → complete WO & kurangi stok
-      await _repo.completeWorkOrder(
+      await _repo.cetakPartWorkOrder(
         int.parse(widget.workOrder.noWo),
         deductStock: true,
       );
@@ -178,7 +181,7 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
                           _buildDetailRow(
                             Icons.directions_car,
                             'Kendaraan',
-                            '${widget.workOrder.platNomor ?? "-"}',
+                            widget.workOrder.platNomor ?? "-",
                           ),
                           _buildDetailRow(
                             Icons.branding_watermark,
@@ -328,7 +331,11 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton.icon(
-                        onPressed: _isLoading ? null : _completeAndPrint,
+                        onPressed: widget.workOrder.status == 'on_progress'
+                            ? _isLoading
+                                  ? null
+                                  : _completeAndPrint
+                            : null,
                         icon: _isLoading
                             ? const SizedBox(
                                 width: 20,
@@ -342,7 +349,7 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
                               )
                             : const Icon(Icons.check_circle_outline),
                         label: Text(
-                          _isLoading ? 'Memproses...' : 'Selesai & Cetak Nota',
+                          _isLoading ? 'Memproses...' : 'Cetak Nota Part',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -403,10 +410,12 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
     switch (status.toLowerCase()) {
       case 'pending':
         return Colors.orange;
-      case 'in_progress':
+      case 'on_progress':
         return Colors.blue;
       case 'completed':
         return Colors.green;
+      case 'finished':
+        return Colors.red.shade200;
       case 'paid':
         return Colors.purple;
       default:

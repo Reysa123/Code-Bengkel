@@ -28,11 +28,11 @@ class DatabaseHelper {
     await db.execute('''CREATE TABLE vehicles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       customer_id INTEGER, plat_nomor TEXT UNIQUE NOT NULL,
-      merk TEXT, tipe TEXT, tahun TEXT, warna TEXT,
+      merk TEXT, tipe TEXT, tahun TEXT, warna TEXT, km_terakhir INTEGER DEFAULT 0,
       FOREIGN KEY (customer_id) REFERENCES customers(id)
     )''');
 
-   await db.execute('''
+    await db.execute('''
   CREATE TABLE services (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nama TEXT NOT NULL,
@@ -78,7 +78,7 @@ class DatabaseHelper {
     await db.execute('''CREATE TABLE wo_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       wo_id INTEGER, type TEXT, item_id INTEGER,
-      qty INTEGER DEFAULT 1, harga REAL, discount_percent REAL DEFAULT 0, subtotal REAL,
+      qty INTEGER DEFAULT 1, harga REAL, discount_percent REAL DEFAULT 0, subtotal REAL,status TEXT DEFAULT 'pending',
       FOREIGN KEY (wo_id) REFERENCES work_orders(id)
     )''');
 

@@ -31,12 +31,13 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
   final NumberFormat nf = NumberFormat('#,###');
   List<Service> _filteredServices = [];
   List<Part> _filteredParts = [];
+  int _kmTerakhir = 0;
   // Controllers
   final TextEditingController _noWoController = TextEditingController();
   final TextEditingController _kmController = TextEditingController();
   final TextEditingController _catatanController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
-
+  final FocusNode kmFocusNode = FocusNode();
   // Data
   final DateTime _selectedDate = DateTime.now();
   Mechanic? _selectedMechanic;
@@ -56,6 +57,9 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
 
   void _generateNoWO() {
     _noWoController.text = DateFormat('yyMMddHHmmss').format(DateTime.now());
+    _kmTerakhir = widget.initialVehicle != null
+        ? widget.initialVehicle!.kmTerakhir ?? 0
+        : 0;
   }
 
   void _updateGrandTotal() {
@@ -195,23 +199,40 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
     if (_formKey.currentState!.validate() &&
         _selectedVehicle != null &&
         _selectedItems.isNotEmpty) {
-      print('Saving Work Order with data:');
-      print(_selectedItems.toList().toString());
-      final wo = WorkOrder(
-        noWo: _noWoController.text,
-        tanggal: DateFormat('yyyy-MM-dd').format(_selectedDate),
-        vehicleId: _selectedVehicle!.id!,
-        mechanicId: _selectedMechanic?.id ?? 0,
-        total: _grandTotal,
-        status: 'pending',
-      );
-      context.read<WorkOrderCubit>().createWorkOrder(wo, _selectedItems);
-       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Simpan data  berhasil!'), backgroundColor: Colors.green),
-      );
+      if (_kmController.text.isNotEmpty &&
+          (int.tryParse(_kmController.text) ?? 0) >= _kmTerakhir) {
+        final wo = WorkOrder(
+          noWo: _noWoController.text,
+          tanggal: DateFormat('yyyy-MM-dd').format(_selectedDate),
+          vehicleId: _selectedVehicle!.id!,
+          mechanicId: _selectedMechanic?.id ?? 0,
+          total: _grandTotal,
+          status: 'pending',
+        );
+        context.read<WorkOrderCubit>().createWorkOrder(wo, _selectedItems);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Simpan data  berhasil!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'KM terakhir harus diisi & valid, KM terakhir ( $_kmTerakhir )',
+            ),
+          ),
+        );
+        _tabController.animateTo(0); // Pindah ke tab pertama
+        kmFocusNode.requestFocus();
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lengkapi data & minimal 1 item')),
+        const SnackBar(
+          content: Text('Lengkapi data & minimal 1 item pekerjaan'),
+        ),
       );
     }
   }
@@ -379,13 +400,13 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
 
   // Fungsi helper untuk menambah ke list utama
   void _addItemToWO(String type, int id, String nama, double harga) {
-    print('Adding item to WO: type=$type, id=$id, nama=$nama, harga=$harga');
+    // print('Adding item to WO: type=$type, id=$id, nama=$nama, harga=$harga');
     setState(() {
       // Cek duplikasi seperti di createpkb.dart (opsional)
       bool exists = _selectedItems.any(
         (item) => item.itemId == id && item.type == type,
       );
-      print('exists: $exists');
+      // print('exists: $exists');
       if (exists) {
         // Jika sudah ada, tambahkan Qty (khusus Part)
         int idx = _selectedItems.indexWhere(
@@ -454,6 +475,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
             width: 200,
             child: TextFormField(
               controller: _kmController,
+              focusNode: kmFocusNode,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),

@@ -713,6 +713,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Tambah Kendaraan'),
         backgroundColor: AppConstants.primaryColor,
+        foregroundColor: Colors.white,
       ),
     );
   }

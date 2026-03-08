@@ -53,7 +53,7 @@ class _KasirScreenState extends State<KasirScreen> {
     });
 
     try {
-      final items = await _repo.getWoItems(int.parse(wo.noWo));
+      final items = await _repo.getWoItems(int.parse(wo.noWo), 'completed');
       setState(() {
         _items = items;
         _totalDue = items.fold(0.0, (sum, item) {
@@ -107,11 +107,7 @@ class _KasirScreenState extends State<KasirScreen> {
 
     try {
       // 1. Update status ke 'paid' / 'finished'
-      // await _repo.finishWorkOrderAndPrint(
-      //   int.parse(_selectedWO!.noWo),
-      //   _paidAmount,
-      //   _items,
-      // );
+      await _repo.kasirFinishWorkOrder(_selectedWO!.noWo, _paidAmount);
 
       // 2. Refresh list WO
       context.read<WorkOrderCubit>().loadAll();

@@ -63,7 +63,7 @@ class _WorkOrderAssignmentScreenState extends State<WorkOrderAssignmentScreen> {
       await _woRepo.assignMechanics(
         widget.workOrder.noWo,
         mechanicIds,
-        // Optional: newStatus: 'in_progress'
+        // Optional: newStatus: 'on_progress'
       );
 
       if (context.mounted) {
@@ -356,7 +356,11 @@ class _WorkOrderAssignmentScreenState extends State<WorkOrderAssignmentScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
                 TextButton.icon(
-                  onPressed: _showSelectMechanicsDialog,
+                  onPressed:
+                      widget.workOrder.status == 'pending' ||
+                          widget.workOrder.status == 'on_progress'
+                      ? _showSelectMechanicsDialog
+                      : null,
                   icon: const Icon(Icons.add_circle_outline, size: 18),
                   label: const Text('Tambah / Edit'),
                 ),
@@ -415,9 +419,13 @@ class _WorkOrderAssignmentScreenState extends State<WorkOrderAssignmentScreen> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton.icon(
-                onPressed: _isLoading || selectedMechanics.isEmpty
-                    ? null
-                    : _assignMechanics,
+                onPressed:
+                    widget.workOrder.status == 'pending' ||
+                        widget.workOrder.status == 'on_progress'
+                    ? _isLoading || selectedMechanics.isEmpty
+                          ? null
+                          : _assignMechanics
+                    : null,
                 icon: _isLoading
                     ? const SizedBox(
                         width: 20,
@@ -486,10 +494,12 @@ class _WorkOrderAssignmentScreenState extends State<WorkOrderAssignmentScreen> {
     switch (status.toLowerCase()) {
       case 'pending':
         return Colors.orange;
-      case 'in_progress':
+      case 'on_progress':
         return Colors.blue;
       case 'completed':
         return Colors.green;
+      case 'finished':
+        return Colors.red.shade200;
       case 'paid':
         return Colors.purple;
       default:

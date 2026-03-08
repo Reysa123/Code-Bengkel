@@ -1,12 +1,11 @@
 // lib/presentation/screens/work_order_list_screen.dart
 // 🔥 WORK ORDER LIST SCREEN LENGKAP (Full fitur: search, status badge, print, ubah status, delete)
 
-import 'dart:math';
-
 import 'package:bengkel/presentation/screens/billing_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_assignment_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_detail_screen.dart';
+import 'package:bengkel/presentation/screens/work_order_search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -14,7 +13,6 @@ import 'package:intl/intl.dart';
 import '../../data/models/work_order.dart';
 import '../../data/repositories/work_order_repository.dart';
 import '../../presentation/blocs/work_order_cubit.dart';
-import '../../utils/print_utils.dart';
 
 class WorkOrderListScreen extends StatefulWidget {
   const WorkOrderListScreen({super.key});
@@ -101,10 +99,12 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
     switch (status) {
       case 'pending':
         return Colors.orange;
-      case 'in_progress':
+      case 'on_progress':
         return Colors.blue;
       case 'completed':
         return Colors.green;
+      case 'finished':
+        return Colors.red.shade200;
       case 'paid':
         return Colors.purple;
       default:
@@ -116,7 +116,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
     switch (status) {
       case 'pending':
         return 'Pending';
-      case 'in_progress':
+      case 'on_progress':
         return 'Sedang Dikerjakan';
       case 'completed':
         return 'Selesai';
@@ -309,6 +309,100 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                                   ),
                                                 ),
                                               );
+                                            } else if (value == 'complete') {
+                                              if (wo.status == 'pending') {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    backgroundColor:
+                                                        Colors.redAccent,
+                                                    content: Text(
+                                                      'WO belum dikerjakan atau belum assigned mekanik.',
+                                                    ),
+                                                  ),
+                                                );
+                                                return;
+                                              }
+                                              if (wo.status == 'completed' ||
+                                                  wo.status == 'paid' ||
+                                                  wo.status == 'finished') {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    backgroundColor:
+                                                        Colors.redAccent,
+                                                    content: Text(
+                                                      'WO sudah selesai.',
+                                                    ),
+                                                  ),
+                                                );
+                                                return;
+                                              }
+                                              // Konfirmasi sebelum complete
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) => AlertDialog(
+                                                  title: const Text(
+                                                    'Selesaikan Work Order?',
+                                                  ),
+                                                  content: const Text(
+                                                    'Pastikan semua pekerjaan sudah selesai dan part sudah dicetak sebelum menyelesaikan WO.',
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                            context,
+                                                          ),
+                                                      child: const Text(
+                                                        'Batal',
+                                                      ),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () async {
+                                                        await _repository
+                                                            .completedWorkOrder(
+                                                              (wo.noWo),
+                                                            );
+                                                        await context
+                                                            .read<
+                                                              WorkOrderCubit
+                                                            >()
+                                                            .loadAll();
+                                                        Navigator.pop(context);
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          const SnackBar(
+                                                            content: Text(
+                                                              'Work Order diselesaikan',
+                                                            ),
+                                                          ),
+                                                        );
+                                                      },
+                                                      style:
+                                                          TextButton.styleFrom(
+                                                            foregroundColor:
+                                                                Colors.green,
+                                                          ),
+                                                      child: const Text(
+                                                        'Selesaikan',
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            } else if (value == 'maintancewo') {
+                                              // Navigasi ke screen maintenance WO
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      WorkOrderSearchScreen(),
+                                                ),
+                                              );
                                             }
                                           },
                                           itemBuilder: (context) => [
@@ -317,12 +411,20 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               child: Text('Ubah Status'),
                                             ),
                                             const PopupMenuItem(
+                                              value: 'maintancewo',
+                                              child: Text('Maintenance WO'),
+                                            ),
+                                            const PopupMenuItem(
                                               value: 'addmekanik',
                                               child: Text('Tambah Mekanik'),
                                             ),
                                             const PopupMenuItem(
                                               value: 'cetakpart',
                                               child: Text('Cetak Part'),
+                                            ),
+                                            const PopupMenuItem(
+                                              value: 'complete',
+                                              child: Text('Komplit WO'),
                                             ),
                                             const PopupMenuItem(
                                               value: 'cetakbill',
@@ -384,7 +486,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
               title: const Text('Sedang Dikerjakan'),
               leading: const Icon(Icons.build, color: Colors.blue),
               onTap: () {
-                _updateStatus(wo, 'in_progress');
+                _updateStatus(wo, 'on_progress');
                 Navigator.pop(context);
               },
             ),

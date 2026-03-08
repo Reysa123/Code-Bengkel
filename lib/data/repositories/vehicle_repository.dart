@@ -34,4 +34,27 @@ class VehicleRepository {
     final db = await dbHelper.database;
     return await db.delete('vehicles', where: 'id = ?', whereArgs: [id]);
   }
+
+  Future<String> cekKendaraan(int id) async {
+    final db = await dbHelper.database;
+    String mapss = "ok";
+    final List<Map<String, dynamic>> maps = await db.query(
+      'work_orders',
+      where: 'vehicle_id = ? ',
+      whereArgs: [id],
+    );
+    if (maps.isEmpty) {
+      throw Exception('Kendaraan dengan ID $id tidak ditemukan');
+    }
+    for (var e in maps) {
+      print(e.toString());
+      if (e['status'] == 'pending' ||
+          e['status'] == 'on_progress' ||
+          e['status'] == 'completed' ||
+          e['status'] == 'finished') {
+        mapss = 'Kendaraan masih dalam proses perbaikan. WO No. ${e['no_wo']}';
+      }
+    }
+    return mapss;
+  }
 }

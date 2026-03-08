@@ -9,6 +9,7 @@ class Vehicle extends Equatable {
   final String tahun;
   final String warna;
   final String? namaCustomer;
+  final int? kmTerakhir;
 
   const Vehicle({
     this.id,
@@ -19,6 +20,7 @@ class Vehicle extends Equatable {
     required this.tahun,
     this.warna = '',
     this.namaCustomer,
+    this.kmTerakhir,
   });
 
   Map<String, dynamic> toMap() => {
@@ -29,6 +31,7 @@ class Vehicle extends Equatable {
     'tipe': tipe,
     'tahun': tahun,
     'warna': warna,
+    'km_terakhir': kmTerakhir,
   };
 
   factory Vehicle.fromMap(Map<String, dynamic> map) => Vehicle(
@@ -40,8 +43,9 @@ class Vehicle extends Equatable {
     tahun: map['tahun'],
     warna: map['warna'] ?? '',
     namaCustomer: map['nama_customer'],
+    kmTerakhir: map['km_terakhir'] ?? 0,
   );
 
   @override
-  List<Object?> get props => [id, platNomor];
+  List<Object?> get props => [id, platNomor, kmTerakhir];
 }
