@@ -277,7 +277,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                         ),
                                         PopupMenuButton<String>(
                                           icon: const Icon(Icons.more_vert),
-                                          onSelected: (value) {
+                                          onSelected: (value) async {
                                             if (value == 'status') {
                                               _showStatusDialog(wo);
                                             } else if (value == 'cetakpart') {
@@ -397,8 +397,10 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               );
                                             } else if (value == 'maintancewo') {
                                               // Navigasi ke screen maintenance WO
-                                              final List<Map<String, dynamic>> result = await WorkOrderRepository()
-        .getAllByWoId(wo.noWo);
+                                              final List<Map<String, dynamic>>
+                                              result =
+                                                  await WorkOrderRepository()
+                                                      .getAllByWoId(wo.noWo);
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
