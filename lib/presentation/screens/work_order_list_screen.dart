@@ -397,12 +397,14 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               );
                                             } else if (value == 'maintancewo') {
                                               // Navigasi ke screen maintenance WO
+                                              final List<Map<String, dynamic>> result = await WorkOrderRepository()
+        .getAllByWoId(wo.noWo);
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (_) =>
                                                       EditWorkOrderScreen(
-                                                        initialVehicle: [],
+                                                        initialVehicle: result,
                                                       ),
                                                 ),
                                               );
