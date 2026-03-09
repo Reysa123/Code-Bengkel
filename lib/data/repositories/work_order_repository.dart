@@ -1,0 +1,470 @@
+// 6. lib/data/repositories/work_order_repository.dart  ← PALING PENTING
+
+import '../../core/database/database_helper.dart';
+import '../models/work_order.dart';
+import '../models/wo_item.dart';
+
+class WorkOrderRepository {
+  final dbHelper = DatabaseHelper.instance;
+  Future<List<WorkOrder>> getAll() async {
+    final db = await dbHelper.database;
+    final maps = await db.rawQuery('''
+      SELECT 
+      wo.*,
+      v.plat_nomor,
+      v.merk,
+      v.tipe,
+      v.tahun,
+      v.warna,
+      c.nama AS nama_customer,
+      m.nama AS nama_mekanik
+    FROM work_orders wo
+    LEFT JOIN vehicles v ON wo.vehicle_id = v.id
+    LEFT JOIN customers c ON v.customer_id = c.id
+    LEFT JOIN mechanics m ON wo.mechanic_id = m.id
+    ORDER BY wo.tanggal DESC
+    ''');
+    //print(maps.toList().toString());
+    return maps.map((e) => WorkOrder.fromMap(e)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getAllByWoId(String woId) async {
+    final db = await dbHelper.database;
+    final maps = await db.rawQuery(
+      '''
+      SELECT 
+      wo.*,
+      v.plat_nomor,
+      v.merk,
+      v.tipe,
+      v.tahun,
+      v.warna,
+      v.km_terakhir AS kmTerakhir,
+      CASE 
+        WHEN wi.type = 'service' THEN s.nama
+        WHEN wi.type = 'part' THEN p.nama
+        ELSE NULL
+      END AS nama_item,
+      wi.item_id AS item_id,
+      wi.type AS type_item,
+      wi.harga AS harga_item,
+      wi.qty AS qty_item,
+      wi.subtotal AS subtotal_item,
+      wi.status AS status_item,
+      c.nama AS nama_customer,
+      m.nama AS nama_mekanik
+    FROM work_orders wo
+    LEFT JOIN wo_items wi ON wo.no_wo = wi.wo_id
+    LEFT JOIN services s ON wi.type = 'service' AND wi.item_id = s.id
+    LEFT JOIN parts p ON wi.type = 'part' AND wi.item_id = p.id
+    LEFT JOIN vehicles v ON wo.vehicle_id = v.id
+    LEFT JOIN customers c ON v.customer_id = c.id
+    LEFT JOIN mechanics m ON wo.mechanic_id = m.id
+    WHERE wo.no_wo = ?
+    ''',
+      [woId],
+    );
+    //print(maps.toList().toString());
+    return maps;
+  }
+
+  Future<void> assignMechanics(String woId, List<int> mechanicIds) async {
+    final db = await dbHelper.database;
+    await db.transaction((txn) async {
+      // Hapus assignment lama
+      //await txn.delete('work_order_mechanics', where: 'work_order_id = ?', whereArgs: [woId]);
+      print('Deleted old mechanics for WO $woId');
+      print('Assigning new mechanics: $mechanicIds');
+      // Insert baru
+      for (final mid in mechanicIds) {
+        await txn.update(
+          'work_orders',
+          {'mechanic_id': mid, 'status': 'on_progress'},
+          where: 'no_wo = ?',
+          whereArgs: [woId],
+        );
+      }
+    });
+  }
+
+  Future<int> insert(WorkOrder wo) async {
+    final db = await dbHelper.database;
+    return await db.insert('work_orders', wo.toMap());
+  }
+
+  Future<void> insertWithItems(WorkOrder wo, List<WoItem> items) async {
+    print('Inserting Work Order: ${items.map((i) => i.toString()).toList()}');
+    final db = await dbHelper.database;
+    //final woId = await insert(wo);
+    await db.insert('work_orders', wo.toMap());
+    await db.update(
+      'vehicles',
+      {'km_terakhir': wo.kmTerakhir},
+      where: 'id = ?',
+      whereArgs: [wo.vehicleId],
+    );
+    print(items.length);
+    for (var item in items) {
+      print(item.toString());
+      // item.woId = woId;
+      try {
+        await db.insert('wo_items', {
+          'wo_id': item.woId,
+          'type': item.type,
+          'item_id': item.itemId,
+          'qty': item.qty,
+          'harga': item.harga,
+          'subtotal': item.subtotal,
+        });
+
+        // Kurangi stok jika part
+        // if (item.type == 'part') {
+        //   await db.rawUpdate('UPDATE parts SET stok = stok - ? WHERE id = ?', [
+        //     item.qty,
+        //     item.itemId,
+        //   ]);
+        // }
+      } catch (e) {
+        print('Error inserting item: $e');
+      }
+    }
+  }
+
+  Future<void> updateWithItems(WorkOrder wo, List<WoItem> items) async {
+    print(
+      'Updating Work Order: wo.noWo=${wo.noWo}, items=${items.map((i) => i.toString()).toList()}',
+    );
+    final db = await dbHelper.database;
+    //final woId = await insert(wo);
+    try {
+      // for (var item in items) {
+      //   if (item.type == 'part') {
+      //     await db.rawUpdate('UPDATE parts SET stok = stok + ? WHERE id = ? AND status = ?', [
+      //       item.qty,
+      //       item.itemId,
+      //       'pending', // or whatever the status value is for available parts
+      //     ]);
+      //   }
+      // }
+      print('Updating work order with no_wo=${wo.noWo}');
+      await db.update(
+        'work_orders',
+        wo.toMap(),
+        where: 'no_wo = ?',
+        whereArgs: [wo.noWo],
+      );
+      print('Deleted old items for WO ${wo.noWo}');
+      await db.delete(
+        'wo_items',
+        where: 'wo_id = ? AND status = ?',
+        whereArgs: [wo.noWo, 'pending'],
+      );
+      print('Inserting new items for WO ${wo.noWo}');
+      await db.update(
+        'vehicles',
+        {'km_terakhir': wo.kmTerakhir},
+        where: 'id = ?',
+        whereArgs: [wo.vehicleId],
+      );
+      print(
+        'Updated vehicle km_terakhir for vehicle_id=${wo.vehicleId} to ${wo.kmTerakhir}',
+      );
+    } catch (e) {
+      print('Error updating work order: $e');
+    }
+    print(items.length);
+    for (var item in items) {
+      print(item.toString());
+      // item.woId = woId;
+      try {
+        await db.insert('wo_items', {
+          'wo_id': item.woId,
+          'type': item.type,
+          'item_id': item.itemId,
+          'qty': item.qty,
+          'harga': item.harga,
+          'subtotal': item.subtotal,
+        });
+
+        // Kurangi stok jika part
+        // if (item.type == 'part') {
+        //   await db.rawUpdate('UPDATE parts SET stok = stok - ? WHERE id = ?', [
+        //     item.qty,
+        //     item.itemId,
+        //   ]);
+        // }
+      } catch (e) {
+        print('Error inserting item: $e');
+      }
+    }
+  }
+
+  Future<int> updateStatus(int woId, String status, double paid) async {
+    final db = await dbHelper.database;
+    return await db.update(
+      'work_orders',
+      {'status': status, 'paid': paid},
+      where: 'id = ?',
+      whereArgs: [woId],
+    );
+  }
+
+  Future<int> delete(int id) async {
+    final db = await dbHelper.database;
+    await db.delete('wo_items', where: 'wo_id = ?', whereArgs: [id]);
+    return await db.delete('work_orders', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> updateMechanic(
+    int woId,
+    int mechanicId, {
+    String? newStatus,
+  }) async {
+    final db = await dbHelper.database;
+    Map<String, dynamic> map = {};
+    map['mechanic_id'] = mechanicId;
+    if (newStatus != null) {
+      map['status'] = newStatus;
+    }
+    return await db.update(
+      'work_orders',
+      map,
+      where: 'id = ?',
+      whereArgs: [woId],
+    );
+  }
+
+  // Cek apakah stok cukup untuk semua part di WO ini
+  Future<bool> checkStockSufficient(int woId) async {
+    final db = await dbHelper.database;
+
+    final items = await db.rawQuery(
+      '''
+    SELECT wi.item_id, wi.qty, p.stok
+    FROM wo_items wi
+    JOIN parts p ON wi.item_id = p.id
+    WHERE wi.wo_id = ? AND wi.type = 'part'
+  ''',
+      [woId],
+    );
+
+    for (var row in items) {
+      final required = row['qty'] as int;
+      final available = row['stok'] as int;
+      if (available < required) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Kurangi stok semua part di WO ini
+  Future<void> deductPartStock(int woId) async {
+    final db = await dbHelper.database;
+
+    await db.transaction((txn) async {
+      final items = await txn.rawQuery(
+        '''
+      SELECT item_id, qty FROM wo_items WHERE wo_id = ? AND type = 'part'
+    ''',
+        [woId],
+      );
+
+      for (var row in items) {
+        final partId = row['item_id'] as int;
+        final qty = row['qty'] as int;
+
+        await txn.rawUpdate('UPDATE parts SET stok = stok - ? WHERE id = ?', [
+          qty,
+          partId,
+        ]);
+      }
+    });
+  }
+
+  Future<void> cetakPartWorkOrder(int woId, {bool deductStock = true}) async {
+    final db = await dbHelper.database;
+
+    if (deductStock) {
+      final sufficient = await checkStockSufficient(woId);
+      if (!sufficient) {
+        throw Exception('Stok beberapa part tidak mencukupi');
+      }
+      await deductPartStock(woId);
+    }
+
+    await db.update(
+      'wo_items',
+      {'status': 'completed'},
+      where: 'wo_id = ? AND type = ?',
+      whereArgs: [woId, 'part'],
+    );
+  }
+
+  // Update status ke completed + optional deduct stock
+  Future<void> completedWorkOrder(String woId) async {
+    final db = await dbHelper.database;
+    try {
+      await db.update(
+        'work_orders',
+        {'status': 'completed'},
+        where: 'no_wo = ?',
+        whereArgs: [woId],
+      );
+    } catch (e) {
+      print('Error completing work order: $e');
+    }
+  }
+
+  // Mengambil semua item dari Work Order tertentu
+  Future<List<WoItem>> getWoItems(int woId, String status) async {
+    final db = await dbHelper.database;
+
+    final List<Map<String, dynamic>> maps = await db.rawQuery(
+      '''
+      SELECT
+        wi.*,
+        CASE
+          WHEN wi.type = 'service' THEN s.nama
+          WHEN wi.type = 'part' THEN p.nama
+        END AS nama_item,
+        CASE
+          WHEN wi.type = 'service' THEN s.harga
+          WHEN wi.type = 'part' THEN p.harga_jual
+          ELSE wi.harga
+        END AS harga
+      FROM wo_items wi
+      LEFT JOIN services s ON wi.item_id = s.id AND wi.type = 'service'
+      LEFT JOIN parts p ON wi.item_id = p.id AND wi.type = 'part'
+      WHERE wi.wo_id = ? AND wi.status = ?
+      ORDER BY wi.id ASC
+    ''',
+      [woId, status],
+    );
+    // print('list : ${maps.toString()}');
+    return maps.map((map) {
+      // Buat WoItem dengan data tambahan (display name & harga asli jika perlu)
+      final item = WoItem.fromMap(map);
+      return item;
+
+      // Optional: tambahkan field custom jika model WoItem sudah di-extend
+      // item.namaItem = map['nama_item_display'] as String? ?? item.namaItem;
+    }).toList();
+  }
+
+  // Versi alternatif: kembalikan Map lengkap (lebih fleksibel untuk cetak)
+  Future<List<Map<String, dynamic>>> getWoItemsDetailed(int woId) async {
+    final db = await dbHelper.database;
+
+    return await db.rawQuery(
+      '''
+    SELECT 
+      wi.id,
+      wi.type,
+      wi.item_id,
+      wi.qty,
+      wi.harga,
+      wi.subtotal,
+      CASE 
+        WHEN wi.type = 'service' THEN s.nama
+        WHEN wi.type = 'part' THEN p.nama || ' (' || p.kode || ')'
+       
+      END AS nama_item,
+      CASE 
+        WHEN wi.type = 'service' THEN s.harga
+        WHEN wi.type = 'part' THEN p.harga_jual
+        ELSE wi.harga
+      END AS harga_asli,
+      CASE 
+        WHEN wi.type = 'part' THEN p.stok
+        ELSE NULL
+      END AS stok_saat_ini
+    FROM wo_items wi
+    LEFT JOIN services s ON wi.type = 'service' AND wi.item_id = s.id
+    LEFT JOIN parts p ON wi.type = 'part' AND wi.item_id = p.id
+    WHERE wi.wo_id = ?
+    ORDER BY wi.id ASC
+  ''',
+      [woId],
+    );
+  }
+
+  // lib/data/repositories/work_order_repository.dart
+  Future<void> kasirFinishWorkOrder(String woId, double paid) async {
+    final db = await dbHelper.database;
+
+    await db.update(
+      'work_orders',
+      {'status': 'paid', 'paid': paid}, // atau 'completed_and_paid'
+      where: 'no_wo = ?',
+      whereArgs: [woId],
+    );
+  }
+
+  // Finish WO + cetak kwitansi
+  Future<void> finishWorkOrderAndPrint(
+    int woId,
+    double paid,
+    List<WoItem> items,
+  ) async {
+    final db = await dbHelper.database;
+
+    await db.update(
+      'work_orders',
+      {
+        'status': 'finished',
+        'paid': paid,
+      }, // atau 'paid' / 'completed_and_paid'
+      where: 'no_wo = ?',
+      whereArgs: [woId],
+    );
+    for (var item in items) {
+      await db.update(
+        'wo_items',
+        {'discount_percent': item.discountPercent},
+        where: 'id = ?',
+        whereArgs: [item.id],
+      );
+    }
+
+    // // Optional: update paid = total jika belum lunas
+    // await db.rawUpdate(
+    //   'UPDATE work_orders SET paid = total WHERE id = ? AND paid < total',
+    //   [woId],
+    // );
+  }
+
+  // Ambil data lengkap untuk kwitansi (sudah include diskon)
+  Future<Map<String, dynamic>> getWorkOrderForReceipt(String woId) async {
+    final db = await dbHelper.database;
+    //print('Fetching WO for receipt: $woId');
+    final woMap = await db.query(
+      'work_orders',
+      where: 'no_wo = ?',
+      whereArgs: [woId],
+      limit: 1,
+    );
+
+    if (woMap.isEmpty) throw Exception('WO tidak ditemukan');
+
+    final items = await db.rawQuery(
+      '''
+    SELECT 
+      wi.*,
+      CASE 
+        WHEN wi.type = 'service' THEN s.nama
+        WHEN wi.type = 'part' THEN p.nama || ' (' || p.kode || ')'
+        
+      END AS nama_item,
+      wi.discount_percent
+    FROM wo_items wi
+    LEFT JOIN services s ON wi.type = 'service' AND wi.item_id = s.id
+    LEFT JOIN parts p ON wi.type = 'part' AND wi.item_id = p.id
+    WHERE wi.wo_id = ?
+  ''',
+      [woId],
+    );
+    // print('Items for receipt: ${woMap.toString()}');
+    return {'wo': woMap.first, 'items': items};
+  }
+}
