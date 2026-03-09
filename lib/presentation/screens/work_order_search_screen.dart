@@ -1,10 +1,5 @@
-import 'package:bengkel/core/database/database_helper.dart';
-import 'package:bengkel/data/models/vehicle.dart';
-import 'package:bengkel/data/models/work_order.dart';
 import 'package:bengkel/data/repositories/work_order_repository.dart';
 import 'package:bengkel/presentation/screens/edit_work_order_screen.dart';
-import 'package:bengkel/presentation/screens/work_order_detail_screen.dart';
-import 'package:bengkel/presentation/screens/work_order_form_screen.dart';
 import 'package:flutter/material.dart';
 
 class WorkOrderSearchScreen extends StatefulWidget {
@@ -36,11 +31,12 @@ class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withAlpha(5),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -53,7 +49,10 @@ class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
           decoration: InputDecoration(
             hintText: 'Cari No. Work Order...',
             hintStyle: TextStyle(color: Colors.grey[400]),
-            border: InputBorder.none,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
             prefixIcon: const Icon(
               Icons.assignment_rounded,
               color: Colors.blueAccent,
@@ -85,7 +84,7 @@ class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withAlpha(5),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -137,7 +136,6 @@ class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
         .getAllByWoId(query);
 
     if (result.isNotEmpty) {
-      print(result.toList().toString());
       // Jika ADA, arahkan ke Detail Screen
 
       await Navigator.push(
@@ -146,12 +144,16 @@ class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
           builder: (context) => EditWorkOrderScreen(initialVehicle: result),
         ),
       ).then((onValue) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Update data  berhasil!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        if (onValue == true) {
+          // Jika data berhasil diupdate, tampilkan SnackBar sukses
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Update data  berhasil!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+        return;
       });
     } else {
       // Jika GAGAL, tampilkan Dialog Modern

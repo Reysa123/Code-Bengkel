@@ -1,7 +1,6 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:intl/intl.dart';
 
 import '../data/models/work_order.dart';
 import '../data/models/wo_item.dart';

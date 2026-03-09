@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
-import '../../data/models/vehicle.dart';
 import '../../data/models/mechanic.dart';
 import '../../data/models/service.dart';
 import '../../data/models/part.dart';
@@ -86,6 +85,7 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
         ),
       );
     }
+    _updateGrandTotal();
   }
 
   void _updateGrandTotal() {
@@ -582,18 +582,27 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
           BlocBuilder<MechanicCubit, MechanicState>(
             builder: (context, state) {
               if (state is MechanicLoaded) {
-                return DropdownButtonFormField<Mechanic>(
-                  enableFeedback:
-                      _selectedVehicle!.first['status'] == 'pending' ||
-                      _selectedVehicle!.first['status'] == 'on_progress',
-                  initialValue: _selectedMechanic,
-                  decoration: InputDecoration(border: OutlineInputBorder()),
-                  items: state.mechanics
-                      .map(
-                        (m) => DropdownMenuItem(value: m, child: Text(m.nama)),
-                      )
-                      .toList(),
-                  onChanged: (val) => setState(() => _selectedMechanic = val),
+                return IgnorePointer(
+                  ignoring:
+                      _selectedVehicle!.first['status'] == 'finished' ||
+                      _selectedVehicle!.first['status'] == 'paid' ||
+                      _selectedVehicle!.first['status'] == 'completed',
+                  child: DropdownButtonFormField<Mechanic>(
+                    initialValue: _selectedMechanic,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      enabled:
+                          _selectedVehicle!.first['status'] == 'pending' ||
+                          _selectedVehicle!.first['status'] == 'on_progress',
+                    ),
+                    items: state.mechanics
+                        .map(
+                          (m) =>
+                              DropdownMenuItem(value: m, child: Text(m.nama)),
+                        )
+                        .toList(),
+                    onChanged: (val) => setState(() => _selectedMechanic = val),
+                  ),
                 );
               }
               return const CircularProgressIndicator();
@@ -708,11 +717,24 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
                         IconButton(
                           icon: Icon(
                             Icons.delete,
-                            color: item.status == 'completed'
+                            color:
+                                item.status == 'completed' ||
+                                    _selectedVehicle!.first['status'] ==
+                                        'finished' ||
+                                    _selectedVehicle!.first['status'] ==
+                                        'paid' ||
+                                    _selectedVehicle!.first['status'] ==
+                                        'completed'
                                 ? Colors.grey
                                 : Colors.red,
                           ),
-                          onPressed: item.status == 'completed'
+                          onPressed:
+                              item.status == 'completed' ||
+                                  _selectedVehicle!.first['status'] ==
+                                      'finished' ||
+                                  _selectedVehicle!.first['status'] == 'paid' ||
+                                  _selectedVehicle!.first['status'] ==
+                                      'completed'
                               ? null
                               : () => setState(() {
                                   _selectedItems.remove(item);

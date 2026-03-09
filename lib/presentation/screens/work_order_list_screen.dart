@@ -6,7 +6,6 @@ import 'package:bengkel/presentation/screens/edit_work_order_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_assignment_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_detail_screen.dart';
-import 'package:bengkel/presentation/screens/work_order_search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -65,35 +64,6 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
   }
 
   // ====================== DELETE ======================
-  void _showDeleteConfirm(WorkOrder wo) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Work Order?'),
-        content: Text(
-          'No WO: ${wo.noWo}\nTotal: Rp ${NumberFormat('#,###').format(wo.total)}\n\nData ini akan dihapus permanen.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () async {
-              await _repository.delete(wo.id!);
-              await context.read<WorkOrderCubit>().loadAll();
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Work Order dihapus')),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ====================== STATUS COLOR ======================
   Color _getStatusColor(String status) {
@@ -341,7 +311,30 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                                 );
                                                 return;
                                               }
-                                              // Konfirmasi sebelum complete
+                                              List<String> d = [];
+                                              var s =
+                                                  await WorkOrderRepository()
+                                                      .getAllByWoId(wo.noWo);
+                                              for (var e in s) {
+                                                if (e['type'] == 'part') {
+                                                  d.add(e['status_item']);
+                                                }
+                                              }
+                                              if (d.contains('pending') ||
+                                                  d.contains('on_progress')) {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    backgroundColor:
+                                                        Colors.redAccent,
+                                                    content: Text(
+                                                      'WO belum dikerjakan atau belum cetak part.',
+                                                    ),
+                                                  ),
+                                                );
+                                                return;
+                                              }
                                               showDialog(
                                                 context: context,
                                                 builder: (context) => AlertDialog(
@@ -401,7 +394,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               result =
                                                   await WorkOrderRepository()
                                                       .getAllByWoId(wo.noWo);
-                                              Navigator.push(
+                                              await Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (_) =>
@@ -409,7 +402,23 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                                         initialVehicle: result,
                                                       ),
                                                 ),
-                                              );
+                                              ).then((onValue) {
+                                                if (onValue == true) {
+                                                  // Jika data berhasil diupdate, tampilkan SnackBar sukses
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        'Update data  berhasil!',
+                                                      ),
+                                                      backgroundColor:
+                                                          Colors.green,
+                                                    ),
+                                                  );
+                                                }
+                                                return;
+                                              });
                                             }
                                           },
                                           itemBuilder: (context) => [

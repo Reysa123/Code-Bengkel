@@ -21,7 +21,7 @@ class KasirScreen extends StatefulWidget {
 
 class _KasirScreenState extends State<KasirScreen> {
   WorkOrder? _selectedWO;
-  List<WoItem> _items = [];
+  List<WoItem> items = [];
   double _totalDue = 0.0;
   double _paidAmount = 0.0;
   double _change = 0.0;
@@ -45,16 +45,16 @@ class _KasirScreenState extends State<KasirScreen> {
   Future<void> _loadWOItems(WorkOrder wo) async {
     setState(() {
       _isLoading = true;
-      _selectedWO = wo;
+
       _paidAmount = 0.0;
       _change = 0.0;
       _paidController.clear();
     });
 
     try {
-      final items = await _repo.getWoItems(int.parse(wo.noWo), 'completed');
+      final itemss = await _repo.getWoItems(int.parse(wo.noWo), 'completed');
       setState(() {
-        _items = items;
+        items = itemss;
         _totalDue = items.fold(0.0, (sum, item) {
           final disc =
               (item.harga * ((item.discountPercent ?? 0) / 100)) * item.qty;
@@ -62,6 +62,7 @@ class _KasirScreenState extends State<KasirScreen> {
           return sum + (item.subtotal - disc);
         });
         _isLoading = false;
+        _selectedWO = wo;
       });
     } catch (e) {
       setState(() => _isLoading = false);
@@ -132,7 +133,7 @@ class _KasirScreenState extends State<KasirScreen> {
       // Reset form
       setState(() {
         _selectedWO = null;
-        _items = [];
+        items = [];
         _totalDue = 0.0;
         _paidAmount = 0.0;
         _change = 0.0;
@@ -218,7 +219,7 @@ class _KasirScreenState extends State<KasirScreen> {
                                     Text('Customer: ${wo.namaCustomer ?? "-"}'),
                                     Text('Kendaraan: ${wo.platNomor ?? "-"}'),
                                     Text(
-                                      'Tagihan: ${formatCurrencyWithSymbol(wo.paid)}',
+                                      'Tagihan: ${formatCurrencyWithSymbol(_totalDue)}',
                                       style: const TextStyle(
                                         color: Colors.red,
                                         fontWeight: FontWeight.w600,

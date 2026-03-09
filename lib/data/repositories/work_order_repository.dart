@@ -22,7 +22,7 @@ class WorkOrderRepository {
     LEFT JOIN vehicles v ON wo.vehicle_id = v.id
     LEFT JOIN customers c ON v.customer_id = c.id
     LEFT JOIN mechanics m ON wo.mechanic_id = m.id
-    ORDER BY wo.tanggal DESC
+    ORDER BY wo.tanggal ASC, wo.no_wo DESC
     ''');
     //print(maps.toList().toString());
     return maps.map((e) => WorkOrder.fromMap(e)).toList();
@@ -73,8 +73,6 @@ class WorkOrderRepository {
     await db.transaction((txn) async {
       // Hapus assignment lama
       //await txn.delete('work_order_mechanics', where: 'work_order_id = ?', whereArgs: [woId]);
-      print('Deleted old mechanics for WO $woId');
-      print('Assigning new mechanics: $mechanicIds');
       // Insert baru
       for (final mid in mechanicIds) {
         await txn.update(
@@ -93,9 +91,7 @@ class WorkOrderRepository {
   }
 
   Future<void> insertWithItems(WorkOrder wo, List<WoItem> items) async {
-    print('Inserting Work Order: ${items.map((i) => i.toString()).toList()}');
     final db = await dbHelper.database;
-    //final woId = await insert(wo);
     await db.insert('work_orders', wo.toMap());
     await db.update(
       'vehicles',
@@ -103,9 +99,7 @@ class WorkOrderRepository {
       where: 'id = ?',
       whereArgs: [wo.vehicleId],
     );
-    print(items.length);
     for (var item in items) {
-      print(item.toString());
       // item.woId = woId;
       try {
         await db.insert('wo_items', {
@@ -116,65 +110,37 @@ class WorkOrderRepository {
           'harga': item.harga,
           'subtotal': item.subtotal,
         });
-
-        // Kurangi stok jika part
-        // if (item.type == 'part') {
-        //   await db.rawUpdate('UPDATE parts SET stok = stok - ? WHERE id = ?', [
-        //     item.qty,
-        //     item.itemId,
-        //   ]);
-        // }
       } catch (e) {
-        print('Error inserting item: $e');
+        throw Exception('Error inserting item: $e');
       }
     }
   }
 
   Future<void> updateWithItems(WorkOrder wo, List<WoItem> items) async {
-    print(
-      'Updating Work Order: wo.noWo=${wo.noWo}, items=${items.map((i) => i.toString()).toList()}',
-    );
     final db = await dbHelper.database;
     //final woId = await insert(wo);
     try {
-      // for (var item in items) {
-      //   if (item.type == 'part') {
-      //     await db.rawUpdate('UPDATE parts SET stok = stok + ? WHERE id = ? AND status = ?', [
-      //       item.qty,
-      //       item.itemId,
-      //       'pending', // or whatever the status value is for available parts
-      //     ]);
-      //   }
-      // }
-      print('Updating work order with no_wo=${wo.noWo}');
       await db.update(
         'work_orders',
         wo.toMap(),
         where: 'no_wo = ?',
         whereArgs: [wo.noWo],
       );
-      print('Deleted old items for WO ${wo.noWo}');
       await db.delete(
         'wo_items',
         where: 'wo_id = ? AND status = ?',
         whereArgs: [wo.noWo, 'pending'],
       );
-      print('Inserting new items for WO ${wo.noWo}');
       await db.update(
         'vehicles',
         {'km_terakhir': wo.kmTerakhir},
         where: 'id = ?',
         whereArgs: [wo.vehicleId],
       );
-      print(
-        'Updated vehicle km_terakhir for vehicle_id=${wo.vehicleId} to ${wo.kmTerakhir}',
-      );
     } catch (e) {
-      print('Error updating work order: $e');
+      throw Exception('Error updating WO: $e');
     }
-    print(items.length);
     for (var item in items) {
-      print(item.toString());
       // item.woId = woId;
       try {
         await db.insert('wo_items', {
@@ -185,16 +151,8 @@ class WorkOrderRepository {
           'harga': item.harga,
           'subtotal': item.subtotal,
         });
-
-        // Kurangi stok jika part
-        // if (item.type == 'part') {
-        //   await db.rawUpdate('UPDATE parts SET stok = stok - ? WHERE id = ?', [
-        //     item.qty,
-        //     item.itemId,
-        //   ]);
-        // }
       } catch (e) {
-        print('Error inserting item: $e');
+        throw Exception('Error inserting item: $e');
       }
     }
   }
@@ -311,8 +269,14 @@ class WorkOrderRepository {
         where: 'no_wo = ?',
         whereArgs: [woId],
       );
+      await db.update(
+        'wo_items',
+        {'status': 'completed'},
+        where: 'wo_id=? AND type=?',
+        whereArgs: [woId, 'service'],
+      );
     } catch (e) {
-      print('Error completing work order: $e');
+      throw Exception('Error completing work order: $e');
     }
   }
 

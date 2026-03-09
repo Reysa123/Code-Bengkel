@@ -1,15 +1,12 @@
 // ================================================
 // 2. lib/presentation/screens/home_screen.dart
 // ================================================
-import 'package:bengkel/data/models/work_order.dart';
-import 'package:bengkel/presentation/screens/edit_work_order_screen.dart';
 import 'package:bengkel/presentation/screens/kasir_screen.dart';
 import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
 import 'package:bengkel/presentation/screens/part_list_screen.dart';
 import 'package:bengkel/presentation/screens/purchse_form_screen.dart';
 import 'package:bengkel/presentation/screens/supplier_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
-import 'package:bengkel/presentation/screens/work_order_assignment_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -163,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () => _onDrawerItemTapped(1),
             ),
             ListTile(
-              leading: const Icon(Icons.list_alt),
+              leading: const Icon(Icons.surround_sound_rounded),
               title: const Text('Maintenance Work Order'),
               onTap: () => _onDrawerItemTapped(2),
             ),
