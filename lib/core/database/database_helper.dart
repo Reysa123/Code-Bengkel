@@ -109,5 +109,104 @@ class DatabaseHelper {
       wo_id INTEGER, tanggal TEXT, amount REAL, metode TEXT,
       FOREIGN KEY (wo_id) REFERENCES work_orders(id)
     )''');
+
+    // 1. Tabel Daftar Akun (Chart of Accounts)
+    await db.execute('''
+      CREATE TABLE accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL CHECK(type IN ('asset','liability','equity','revenue','expense')),
+        normal_balance TEXT NOT NULL CHECK(normal_balance IN ('debit','kredit')),
+        
+      )
+    ''');
+    await db.execute('''
+CREATE TABLE jurnal_umum (
+      id_jurnal       INTEGER PRIMARY KEY AUTOINCREMENT,
+      tanggal         TEXT NOT NULL,
+      no_referensi    TEXT,
+      keterangan      TEXT NOT NULL,
+      kode_akun       TEXT NOT NULL,
+      nama_akun       TEXT,
+      debit           REAL DEFAULT 0.0,
+      kredit          REAL DEFAULT 0.0,
+      id_transaksi    INTEGER,
+      dibuat_oleh     TEXT,
+      created_at      TEXT DEFAULT (datetime('now', 'localtime'))
+    )
+''');
+    await _seedInitialAccounts(db);
+  }
+
+  Future<void> _seedInitialAccounts(Database db) async {
+    final initialAccounts = [
+      {
+        'code': '101',
+        'name': 'Kas',
+        'type': 'asset',
+        'normal_balance': 'debit',
+      },
+      {
+        'code': '111',
+        'name': 'Piutang Usaha',
+        'type': 'asset',
+        'normal_balance': 'debit',
+      },
+      {
+        'code': '121',
+        'name': 'Persediaan Sparepart',
+        'type': 'asset',
+        'normal_balance': 'debit',
+      },
+      {
+        'code': '201',
+        'name': 'Hutang Usaha',
+        'type': 'liability',
+        'normal_balance': 'kredit',
+      },
+      {
+        'code': '301',
+        'name': 'Modal Pemilik',
+        'type': 'equity',
+        'normal_balance': 'kredit',
+      },
+      {
+        'code': '401',
+        'name': 'Pendapatan Jasa/Service',
+        'type': 'revenue',
+        'normal_balance': 'kredit',
+      },
+      {
+        'code': '402',
+        'name': 'Pendapatan Penjualan Part',
+        'type': 'revenue',
+        'normal_balance': 'kredit',
+      },
+      {
+        'code': '501',
+        'name': 'Harga Pokok Penjualan Part',
+        'type': 'expense',
+        'normal_balance': 'debit',
+      },
+      {
+        'code': '601',
+        'name': 'Beban Operasional',
+        'type': 'expense',
+        'normal_balance': 'debit',
+      },
+    ];
+
+    final batch = db.batch();
+    for (var acc in initialAccounts) {
+      batch.insert('accounts', {
+        'code': acc['code'],
+        'name': acc['name'],
+        'type': acc['type'],
+        'normal_balance': acc['normal_balance'],
+        'is_active': 1,
+      });
+    }
+    await batch.commit(noResult: true);
   }
 }

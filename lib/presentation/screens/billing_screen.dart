@@ -97,6 +97,7 @@ class _BillingScreenState extends State<BillingScreen> {
         int.parse(widget.workOrder.noWo),
         _grandTotalAfterDisc,
         _items,
+        widget.workOrder.namaCustomer!,
       );
 
       // 2. Refresh WO di cubit (opsional)
@@ -127,7 +128,6 @@ class _BillingScreenState extends State<BillingScreen> {
 
       Navigator.pop(context);
     } catch (e) {
-      print(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red),

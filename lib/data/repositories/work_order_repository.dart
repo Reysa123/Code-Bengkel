@@ -45,6 +45,16 @@ class WorkOrderRepository {
         WHEN wi.type = 'part' THEN p.nama
         ELSE NULL
       END AS nama_item,
+      CASE 
+        WHEN wi.type = 'service' THEN s.harga
+        WHEN wi.type = 'part' THEN p.harga_beli
+        ELSE NULL
+      END AS harga_beli_item,
+      CASE 
+        WHEN wi.type = 'service' THEN s.harga
+        WHEN wi.type = 'part' THEN p.harga_jual
+        ELSE NULL
+      END AS harga_jual_item,
       wi.item_id AS item_id,
       wi.type AS type_item,
       wi.harga AS harga_item,
@@ -370,9 +380,95 @@ class WorkOrderRepository {
     int woId,
     double paid,
     List<WoItem> items,
+    String nacus,
   ) async {
+    String tgl = DateTime.now().toIso8601String();
     final db = await dbHelper.database;
-
+    final wo = await getAllByWoId(woId.toString());
+    double hpart = 0, pendapatanpart = 0, pendapatanjasa = 0;
+    String plat = wo.first['plat_nomor'];
+    for (var e in wo) {
+      if (e['type_item'] == 'part') {
+        hpart += e['harga_beli_item'] * e['qty_item'];
+        pendapatanpart += e['harga_jual_item'] * e['qty_item'];
+      }
+      if (e['type_item'] == 'service') {
+        pendapatanjasa += e['harga_jual_item'] * e['qty_item'];
+      }
+    }
+    double disc = (pendapatanpart + pendapatanjasa) - paid;
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '111',
+      'nama_akun': 'Piutang Usaha',
+      'debit': paid,
+      'kredit': 0.00,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '501',
+      'nama_akun': 'Harga Pokok Penjualan Part',
+      'debit': hpart,
+      'kredit': 0.00,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Disc Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '602',
+      'nama_akun': 'Beban Discount',
+      'debit': disc,
+      'kredit': 0.00,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '401',
+      'nama_akun': 'Pendapatan Jasa/Service',
+      'debit': 0.00,
+      'kredit': pendapatanjasa,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '402',
+      'nama_akun': 'Pendapatan Penjualan Part',
+      'debit': 0.00,
+      'kredit': pendapatanpart,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '121',
+      'nama_akun': 'Persediaan Sparepart',
+      'debit': 0.00,
+      'kredit': hpart,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
     await db.update(
       'work_orders',
       {
