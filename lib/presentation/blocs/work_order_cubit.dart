@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -12,10 +13,10 @@ class WorkOrderCubit extends Cubit<WorkOrderState> {
 
   WorkOrderCubit() : super(WorkOrderInitial());
 
-  Future<void> loadAll() async {
+  Future<void> loadAll({DateTimeRange? dateRange}) async {
     emit(WorkOrderLoading());
     try {
-      final workOrders = await _repository.getAll();
+      final workOrders = await _repository.getAll(dateRange: dateRange);
       emit(WorkOrderLoaded(workOrders));
     } catch (e) {
       emit(WorkOrderError(e.toString()));

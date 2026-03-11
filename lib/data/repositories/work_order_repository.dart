@@ -1,13 +1,26 @@
 // 6. lib/data/repositories/work_order_repository.dart  ← PALING PENTING
 
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
 import '../../core/database/database_helper.dart';
 import '../models/work_order.dart';
 import '../models/wo_item.dart';
 
 class WorkOrderRepository {
   final dbHelper = DatabaseHelper.instance;
-  Future<List<WorkOrder>> getAll() async {
+  Future<List<WorkOrder>> getAll({DateTimeRange? dateRange}) async {
     final db = await dbHelper.database;
+    String where = '';
+    List<dynamic> args = [];
+
+    if (dateRange != null) {
+      where = 'WHERE wo.tanggal BETWEEN ? AND ?';
+      args = [
+        DateFormat('yyyy-MM-dd').format(dateRange.start),
+        DateFormat('yyyy-MM-dd').format(dateRange.end),
+      ];
+    }
     final maps = await db.rawQuery('''
       SELECT 
       wo.*,
@@ -22,8 +35,9 @@ class WorkOrderRepository {
     LEFT JOIN vehicles v ON wo.vehicle_id = v.id
     LEFT JOIN customers c ON v.customer_id = c.id
     LEFT JOIN mechanics m ON wo.mechanic_id = m.id
+    $where
     ORDER BY wo.tanggal ASC, wo.no_wo DESC
-    ''');
+    ''', args);
     //print(maps.toList().toString());
     return maps.map((e) => WorkOrder.fromMap(e)).toList();
   }

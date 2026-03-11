@@ -16,7 +16,7 @@ class _NeracaJurnalScreenState extends State<NeracaJurnalScreen>
   late TabController _tabController;
   DateTime _selectedMonth = DateTime.now();
   DateTimeRange? _dateRange;
-  String _searchQuery = '';
+  String searchQuery = '';
   final AccountingRepository repository = AccountingRepository();
   List<JurnalUmum> _jurnalList = [];
   Map<String, dynamic> _neracaData = {
@@ -42,7 +42,7 @@ class _NeracaJurnalScreenState extends State<NeracaJurnalScreen>
       final jurnal = await repository.getJurnalUmum(
         startDate: _dateRange?.start,
         endDate: _dateRange?.end,
-        search: _searchQuery.isNotEmpty ? _searchQuery : null,
+        search: searchQuery.isNotEmpty ? searchQuery : null,
       );
       setState(() => _jurnalList = jurnal);
 
@@ -76,6 +76,8 @@ class _NeracaJurnalScreenState extends State<NeracaJurnalScreen>
         foregroundColor: Colors.white,
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
           tabs: const [
             Tab(text: 'Neraca Saldo'),
             Tab(text: 'Jurnal Umum'),
@@ -160,7 +162,7 @@ class _NeracaJurnalScreenState extends State<NeracaJurnalScreen>
                       //     fillColor: Colors.white,
                       //   ),
                       //   onChanged: (value) {
-                      //     setState(() => _searchQuery = value);
+                      //     setState(() => searchQuery = value);
                       //     _loadData();
                       //   },
                       // ),

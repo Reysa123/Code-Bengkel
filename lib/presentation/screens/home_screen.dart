@@ -35,7 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const DashboardPage(), // Halaman utama
-    // const WorkOrderListScreen(),     // Daftar Work Order
+    const WorkOrderListScreen(), // Daftar Work Order
+    const WorkOrderSearchScreen(),
     const VehicleListScreen(), // Data Kendaraan
   ];
 
@@ -59,8 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(builder: (_) => const WorkOrderSearchScreen()),
       );
-    } else {
-      setState(() => _selectedIndex = index);
     }
   }
 
