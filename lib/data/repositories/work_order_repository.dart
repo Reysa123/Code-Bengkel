@@ -364,15 +364,44 @@ class WorkOrderRepository {
   }
 
   // lib/data/repositories/work_order_repository.dart
-  Future<void> kasirFinishWorkOrder(String woId, double paid) async {
+  Future<void> kasirFinishWorkOrder(
+    String woId,
+    double paid,
+    String nacus,
+    String tgl,
+  ) async {
     final db = await dbHelper.database;
-
+    String tgls = DateTime.now().toIso8601String();
     await db.update(
       'work_orders',
       {'status': 'paid', 'paid': paid}, // atau 'completed_and_paid'
       where: 'no_wo = ?',
       whereArgs: [woId],
     );
+    await db.insert('jurnal_umum', {
+      'created_at': tgls,
+      'tanggal': tgl,
+      'no_referensi': 'PAY-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus',
+      'kode_akun': '111',
+      'nama_akun': 'Piutang Usaha',
+      'debit': 0.00,
+      'kredit': paid,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgls,
+      'tanggal': tgl,
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus',
+      'kode_akun': '101',
+      'nama_akun': 'Kas',
+      'debit': paid,
+      'kredit': 0.00,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
   }
 
   // Finish WO + cetak kwitansi

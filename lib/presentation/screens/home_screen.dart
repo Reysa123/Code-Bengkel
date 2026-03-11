@@ -3,6 +3,7 @@
 // ================================================
 import 'package:bengkel/presentation/screens/kasir_screen.dart';
 import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
+import 'package:bengkel/presentation/screens/neraca_jurnal_screen.dart';
 import 'package:bengkel/presentation/screens/part_list_screen.dart';
 import 'package:bengkel/presentation/screens/purchse_form_screen.dart';
 import 'package:bengkel/presentation/screens/supplier_screen.dart';
@@ -188,10 +189,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.analytics),
               title: const Text('Laporan'),
-              // onTap: () => Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (_) => const ReportScreen()),
-              // ),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NeracaJurnalScreen()),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.settings),

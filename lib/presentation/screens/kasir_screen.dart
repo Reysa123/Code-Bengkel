@@ -26,7 +26,6 @@ class _KasirScreenState extends State<KasirScreen> {
   double _paidAmount = 0.0;
   double _change = 0.0;
   bool _isLoading = false;
-
   final TextEditingController _paidController = TextEditingController();
   final WorkOrderRepository _repo = WorkOrderRepository();
 
@@ -86,7 +85,7 @@ class _KasirScreenState extends State<KasirScreen> {
     });
   }
 
-  Future<void> _processPaymentAndPrint() async {
+  Future<void> _processPaymentAndPrint(String nacus, String tglWo) async {
     if (_selectedWO == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Pilih Work Order terlebih dahulu')),
@@ -107,7 +106,7 @@ class _KasirScreenState extends State<KasirScreen> {
 
     try {
       // 1. Update status ke 'paid' / 'finished'
-      await _repo.kasirFinishWorkOrder(_selectedWO!.noWo, _paidAmount);
+      await _repo.kasirFinishWorkOrder(_selectedWO!.noWo, _paidAmount, nacus, tglWo);
 
       // 2. Refresh list WO
       context.read<WorkOrderCubit>().loadAll();
@@ -304,7 +303,10 @@ class _KasirScreenState extends State<KasirScreen> {
                           child: ElevatedButton.icon(
                             onPressed: _isLoading
                                 ? null
-                                : _processPaymentAndPrint,
+                                : () => _processPaymentAndPrint(
+                                    '${_selectedWO!.namaCustomer}-${_selectedWO!.platNomor}',
+                                    _selectedWO!.tanggal,
+                                  ),
                             icon: _isLoading
                                 ? const SizedBox(
                                     width: 20,
