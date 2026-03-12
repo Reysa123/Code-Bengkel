@@ -42,6 +42,54 @@ class WorkOrderRepository {
     return maps.map((e) => WorkOrder.fromMap(e)).toList();
   }
 
+  Future<List<Map<String, dynamic>>> getWoIdByNora(String nora) async {
+    final db = await dbHelper.database;
+    final maps = await db.rawQuery(
+      '''
+      SELECT 
+      wo.*,
+      v.plat_nomor,
+      v.merk,
+      v.tipe,
+      v.tahun,
+      v.warna,
+      v.nora,
+      v.km_terakhir AS kmTerakhir,
+      CASE 
+        WHEN wi.type = 'service' THEN s.nama
+        WHEN wi.type = 'part' THEN p.nama
+        ELSE NULL
+      END AS nama_item,
+      CASE 
+        WHEN wi.type = 'service' THEN s.harga
+        WHEN wi.type = 'part' THEN p.harga_jual
+        ELSE NULL
+      END AS harga_item,
+      wi.item_id AS id_item,
+      wi.type AS type_item,
+      wi.qty AS qty_item,
+      wi.subtotal AS subtotal_item,
+      wi.status AS status_item,
+      c.nama AS nama_customer,
+      c.alamat,
+      c.no_hp,
+      m.nama AS nama_mekanik
+    FROM work_orders wo
+    LEFT JOIN wo_items wi ON wo.no_wo = wi.wo_id
+    LEFT JOIN services s ON wi.type = 'service' AND wi.item_id = s.id
+    LEFT JOIN parts p ON wi.type = 'part' AND wi.item_id = p.id
+    LEFT JOIN vehicles v ON wo.vehicle_id = v.id
+    LEFT JOIN customers c ON v.customer_id = c.id
+    LEFT JOIN mechanics m ON wo.mechanic_id = m.id
+    WHERE v.nora LIKE ? OR v.plat_nomor LIKE ?
+    ORDER BY wo.tanggal DESC
+    ''',
+      ['%$nora%', '%$nora%'],
+    );
+    print(maps.toList().toString());
+    return maps;
+  }
+
   Future<List<Map<String, dynamic>>> getAllByWoId(String woId) async {
     final db = await dbHelper.database;
     final maps = await db.rawQuery(

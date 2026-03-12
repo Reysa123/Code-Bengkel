@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     await db.execute('''CREATE TABLE vehicles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      customer_id INTEGER, plat_nomor TEXT UNIQUE NOT NULL,
+      customer_id INTEGER, plat_nomor TEXT UNIQUE NOT NULL, nora TEXT UNIQUE NOT NULL,
       merk TEXT, tipe TEXT, tahun TEXT, warna TEXT, km_terakhir INTEGER DEFAULT 0,
       FOREIGN KEY (customer_id) REFERENCES customers(id)
     )''');

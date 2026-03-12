@@ -70,7 +70,17 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Bengkel Manager Pro'),
         elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Icons.notifications), onPressed: () {}),
+          IconButton(
+            color: Colors.black,
+            tooltip: "Buat Work Order Baru",
+            icon: const Icon(Icons.add_circle_outline),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const WorkOrderFormScreen()),
+              );
+            },
+          ),
         ],
       ),
       drawer: Drawer(
@@ -204,15 +214,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: _screens[_selectedIndex],
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const WorkOrderFormScreen()),
-        ),
-        icon: const Icon(Icons.add),
-        label: const Text('Work Order Baru'),
-        backgroundColor: Colors.green,
-      ),
     );
   }
 }
@@ -324,29 +325,32 @@ class DashboardPage extends StatelessWidget {
     IconData icon,
     Color color,
   ) {
-    return Expanded(
-      child: Card(
-        elevation: 3,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, size: 32, color: color),
-              const SizedBox(height: 12),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+    return Container(
+      padding: EdgeInsets.all(4),
+      child: Expanded(
+        child: Card(
+          elevation: 3,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, size: 32, color: color),
+                const SizedBox(height: 12),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
           ),
         ),
       ),
