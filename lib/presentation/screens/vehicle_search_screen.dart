@@ -27,7 +27,11 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   void _filterSearch(String query, List<Vehicle> allVehicles) {
     setState(() {
       _displayList = allVehicles
-          .where((v) => v.platNomor.toLowerCase().contains(query.toLowerCase()))
+          .where(
+            (v) =>
+                v.platNomor.toLowerCase().contains(query.toLowerCase()) ||
+                v.nora.toLowerCase().contains(query.toLowerCase()),
+          )
           .toList();
     });
   }
@@ -35,7 +39,9 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cari Kendaraan (Plat Nomor)')),
+      appBar: AppBar(
+        title: const Text('Cari Kendaraan (Plat Nomor/Nomor Rangka)'),
+      ),
       body: Column(
         children: [
           // Input Pencarian
@@ -45,7 +51,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
               controller: _searchController,
               autofocus: true,
               decoration: InputDecoration(
-                hintText: 'Ketik Plat Nomor (Contoh: B 1234 ABC)',
+                hintText: 'Ketik Plat Nomor/Nomor Rangka (Contoh: B 1234 ABC)',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.clear),
@@ -118,7 +124,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 IconButton(
-                                  tooltip:"Buat Work Order",
+                                  tooltip: "Buat Work Order",
                                   onPressed: () async {
                                     String vehicles = await VehicleRepository()
                                         .cekKendaraan(vehicle.id!);
@@ -149,7 +155,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                   icon: Icon(Icons.create),
                                 ),
                                 IconButton(
-                                  tooltip:"History Kendaraan",
+                                  tooltip: "History Kendaraan",
                                   onPressed: () {
                                     Navigator.push(
                                       context,

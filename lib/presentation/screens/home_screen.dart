@@ -64,6 +64,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  DateTimeRange _currentMonthRange() {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, 1);
+    final nextMonth = DateTime(now.year, now.month + 1, 1);
+    final end = nextMonth.subtract(const Duration(milliseconds: 1));
+    return DateTimeRange(start: start, end: end);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<WorkOrderCubit>().loadAll(dateRange: _currentMonthRange());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const WorkOrderFormScreen()),
+                MaterialPageRoute(builder: (_) => const VehicleSearchScreen()),
               );
             },
           ),
@@ -229,71 +243,80 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Selamat Datang, Admin!',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            DateFormat('EEEE, dd MMMM yyyy').format(DateTime.now()),
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-          const SizedBox(height: 24),
+      child: BlocBuilder<WorkOrderCubit, WorkOrderState>(
+        builder: (context, state) {
+          if (state is WorkOrderLoaded) {
+            final recent = state.workOrders.take(5).toList();
+            final totalPendapatan = state.workOrders.fold<double>(
+              0,
+              (sum, wo) => sum + wo.total,
+            );
+            final totalKendaraanService = state.workOrders
+                .where((wo) => wo.platNomor != null && wo.platNomor!.isNotEmpty)
+                .map((wo) => wo.platNomor!)
+                .toSet()
+                .length;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Selamat Datang, Admin!',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  DateFormat('EEEE, dd MMMM yyyy').format(DateTime.now()),
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                const SizedBox(height: 24),
 
-          // Quick Stats
-          Row(
-            children: [
-              _buildStatCard(
-                'Work Order Hari Ini',
-                '12',
-                Icons.today,
-                Colors.blue,
-              ),
-              const SizedBox(width: 12),
-              _buildStatCard(
-                'Total Pendapatan',
-                'Rp 4.850.000',
-                Icons.attach_money,
-                Colors.green,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              _buildStatCard(
-                'Part Terjual',
-                '28',
-                Icons.inventory_2,
-                Colors.orange,
-              ),
-              const SizedBox(width: 12),
-              _buildStatCard(
-                'Kendaraan Service',
-                '8',
-                Icons.directions_car,
-                Colors.purple,
-              ),
-            ],
-          ),
+                // Quick Stats
+                Row(
+                  children: [
+                    _buildStatCard(
+                      'Work Order Bulan Ini',
+                      '${state.workOrders.length}',
+                      Icons.today,
+                      Colors.blue,
+                    ),
+                    const SizedBox(width: 12),
+                    _buildStatCard(
+                      'Total Pendapatan Bulan Ini',
+                      'Rp ${NumberFormat('#,###').format(totalPendapatan)}',
+                      Icons.attach_money,
+                      Colors.green,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    _buildStatCard(
+                      'Part Terjual Bulan Ini',
+                      '28',
+                      Icons.inventory_2,
+                      Colors.orange,
+                    ),
+                    const SizedBox(width: 12),
+                    _buildStatCard(
+                      'Kendaraan Service Bulan Ini',
+                      '$totalKendaraanService',
+                      Icons.directions_car,
+                      Colors.purple,
+                    ),
+                  ],
+                ),
 
-          const SizedBox(height: 32),
-          const Text(
-            'Work Order Terbaru',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
+                const SizedBox(height: 32),
+                const Text(
+                  'Work Order Terbaru',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
 
-          BlocBuilder<WorkOrderCubit, WorkOrderState>(
-            builder: (context, state) {
-              if (state is WorkOrderLoaded) {
-                final recent = state.workOrders.take(5).toList();
-                return ListView.builder(
+                ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: recent.length,
@@ -310,12 +333,12 @@ class DashboardPage extends StatelessWidget {
                       ),
                     );
                   },
-                );
-              }
-              return const Center(child: CircularProgressIndicator());
-            },
-          ),
-        ],
+                ),
+              ],
+            );
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
       ),
     );
   }

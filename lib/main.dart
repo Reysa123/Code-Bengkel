@@ -5,6 +5,8 @@ import 'package:bengkel/presentation/blocs/customer_cubit.dart';
 import 'package:bengkel/presentation/blocs/purchase_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
 import 'core/database/database_helper.dart';
 import 'presentation/blocs/vehicle_cubit.dart';
@@ -18,6 +20,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initializeDateFormatting();
+  Intl.defaultLocale = 'id';
   databaseFactory = databaseFactoryFfi;
   // Inisialisasi Database
   await DatabaseHelper.instance.database;
