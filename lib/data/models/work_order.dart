@@ -18,8 +18,8 @@ class WorkOrder extends Equatable {
   final String? warna;
   final String? namaCustomer;
   final String? namaMekanik;
-  final int? kmTerakhir;
   final String? catatan;
+  final int? kmTerakhir;
 
   const WorkOrder({
     this.id,
@@ -37,21 +37,21 @@ class WorkOrder extends Equatable {
     this.warna,
     this.namaCustomer,
     this.namaMekanik,
-    this.kmTerakhir,
     this.catatan,
+    this.kmTerakhir,
   });
 
   Map<String, dynamic> toMap() => {
-    'id': id,
+    // 'id': id,
     'no_wo': noWo,
     'tanggal': tanggal,
     'vehicle_id': vehicleId,
     'mechanic_id': mechanicId,
     'status': status,
-    'km_terakhir': kmTerakhir,
-    'catatan': catatan,
     'total': total,
     'paid': paid,
+    'catatan': catatan,
+    'km_terakhir': kmTerakhir,
   };
 
   factory WorkOrder.fromMap(Map<String, dynamic> map) => WorkOrder(
@@ -70,8 +70,8 @@ class WorkOrder extends Equatable {
     tahun: int.parse(map['tahun'].toString()),
     warna: map['warna'],
     namaMekanik: map['nama_mekanik'],
-    kmTerakhir: map['km_terakhir'],
     catatan: map['catatan'],
+    kmTerakhir: map['km_terakhir'],
   );
 
   @override
@@ -91,7 +91,7 @@ class WorkOrder extends Equatable {
     warna,
     namaCustomer,
     namaMekanik,
-    kmTerakhir,
     catatan,
+    kmTerakhir,
   ];
 }

@@ -43,9 +43,7 @@ class VehicleRepository {
       where: 'vehicle_id = ? ',
       whereArgs: [id],
     );
-    if (maps.isEmpty) {
-      throw Exception('Kendaraan dengan ID $id tidak ditemukan');
-    }
+
     for (var e in maps) {
       print(e.toString());
       if (e['status'] == 'pending' ||

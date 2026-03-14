@@ -1,14 +1,15 @@
 // ================================================
 // 2. lib/presentation/screens/home_screen.dart
 // ================================================
-import 'package:bengkel/data/models/work_order.dart';
+import 'package:bengkel/core/constants/app_constants.dart';
 import 'package:bengkel/presentation/screens/kasir_screen.dart';
 import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
+import 'package:bengkel/presentation/screens/neraca_jurnal_screen.dart';
 import 'package:bengkel/presentation/screens/part_list_screen.dart';
 import 'package:bengkel/presentation/screens/purchse_form_screen.dart';
 import 'package:bengkel/presentation/screens/supplier_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
-import 'package:bengkel/presentation/screens/work_order_assignment_screen.dart';
+import 'package:bengkel/presentation/screens/work_order_search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -31,11 +32,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
+  int selectedIndex = 0;
 
   final List<Widget> _screens = [
     const DashboardPage(), // Halaman utama
-    // const WorkOrderListScreen(),     // Daftar Work Order
+    const WorkOrderListScreen(), // Daftar Work Order
+    const WorkOrderSearchScreen(),
     const VehicleListScreen(), // Data Kendaraan
   ];
 
@@ -53,8 +55,12 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(builder: (_) => const WorkOrderListScreen()),
       );
-    } else {
-      setState(() => _selectedIndex = index);
+    } else if (index == 2) {
+      // 2 = Maintenance Work Order
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const WorkOrderSearchScreen()),
+      );
     }
   }
 
@@ -65,7 +71,17 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Bengkel Manager Pro'),
         elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Icons.notifications), onPressed: () {}),
+          IconButton(
+            color: Colors.black,
+            tooltip: "Buat Work Order Baru",
+            icon: const Icon(Icons.add_circle_outline),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const WorkOrderFormScreen()),
+              );
+            },
+          ),
         ],
       ),
       drawer: Drawer(
@@ -73,8 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             // Header Drawer
             UserAccountsDrawerHeader(
-              accountName: const Text('Bengkel ABC'),
-              accountEmail: const Text('Jl. Raya Denpasar - Bali'),
+              accountName: const Text(AppConstants.companyName),
+              accountEmail: const Text(AppConstants.companyAddress),
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Image.asset(
@@ -155,6 +171,12 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () => _onDrawerItemTapped(1),
             ),
             ListTile(
+              leading: const Icon(Icons.surround_sound_rounded),
+              title: const Text('Maintenance Work Order'),
+              onTap: () => _onDrawerItemTapped(2),
+            ),
+
+            ListTile(
               leading: const Icon(Icons.shopping_cart),
               title: const Text('Pembelian Part'),
               onTap: () => Navigator.push(
@@ -177,10 +199,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.analytics),
               title: const Text('Laporan'),
-              // onTap: () => Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (_) => const ReportScreen()),
-              // ),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NeracaJurnalScreen()),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.settings),
@@ -193,15 +215,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: _screens[_selectedIndex],
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const WorkOrderFormScreen()),
-        ),
-        icon: const Icon(Icons.add),
-        label: const Text('Work Order Baru'),
-        backgroundColor: Colors.green,
-      ),
     );
   }
 }
@@ -314,28 +327,31 @@ class DashboardPage extends StatelessWidget {
     Color color,
   ) {
     return Expanded(
-      child: Card(
-        elevation: 3,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, size: 32, color: color),
-              const SizedBox(height: 12),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+      child: Container(
+        padding: EdgeInsets.all(4),
+        child: Card(
+          elevation: 3,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, size: 32, color: color),
+                const SizedBox(height: 12),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
           ),
         ),
       ),

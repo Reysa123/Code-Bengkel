@@ -323,7 +323,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withAlpha(5),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -353,7 +353,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                                 decoration: BoxDecoration(
                                   color: _getCategoryColor(
                                     service.kategori,
-                                  ).withOpacity(0.1),
+                                  ).withAlpha(5),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 import '../../data/models/work_order.dart';
 import '../../data/models/wo_item.dart';
 import '../../data/repositories/work_order_repository.dart';
 import '../../presentation/blocs/work_order_cubit.dart';
 import '../../utils/number_format.dart'; // nf dan formatCurrencyWithSymbol
-import '../../utils/print_utils.dart'; // printWorkOrderReceipt
+// printWorkOrderReceipt
 
 class BillingScreen extends StatefulWidget {
   final WorkOrder workOrder;
@@ -98,6 +97,7 @@ class _BillingScreenState extends State<BillingScreen> {
         int.parse(widget.workOrder.noWo),
         _grandTotalAfterDisc,
         _items,
+        widget.workOrder.namaCustomer!,
       );
 
       // 2. Refresh WO di cubit (opsional)
@@ -107,15 +107,7 @@ class _BillingScreenState extends State<BillingScreen> {
       final receiptData = await _repo.getWorkOrderForReceipt(
         widget.workOrder.noWo,
       );
-      print('Data untuk cetak: ${receiptData.toString()}');
-      //final wo = WorkOrder.fromMap(receiptData['wo']);
-      // final items = (receiptData['items'] as List)
-      //     .map((e) => WoItem.fromMap(e))
-      //     .toList();
-      // print(
-      //   'Data untuk cetak: WO=${wo.toMap()}, items=${items.map((i) => i.toMap()).toList()}',
-      // );
-      //await printWorkOrderReceipt(wo, []);
+     
 
       if (!mounted) return;
 
@@ -128,7 +120,6 @@ class _BillingScreenState extends State<BillingScreen> {
 
       Navigator.pop(context);
     } catch (e) {
-      print(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red),

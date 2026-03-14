@@ -4,6 +4,7 @@ class Vehicle extends Equatable {
   final int? id;
   final int? customerId;
   final String platNomor;
+  final String nora;
   final String merk;
   final String tipe;
   final String tahun;
@@ -15,6 +16,7 @@ class Vehicle extends Equatable {
     this.id,
     this.customerId,
     required this.platNomor,
+    required this.nora,
     required this.merk,
     required this.tipe,
     required this.tahun,
@@ -27,6 +29,7 @@ class Vehicle extends Equatable {
     'id': id,
     'customer_id': customerId,
     'plat_nomor': platNomor,
+    'nora': nora,
     'merk': merk,
     'tipe': tipe,
     'tahun': tahun,
@@ -38,6 +41,7 @@ class Vehicle extends Equatable {
     id: map['id'],
     customerId: map['customer_id'],
     platNomor: map['plat_nomor'],
+    nora: map['nora'],
     merk: map['merk'],
     tipe: map['tipe'],
     tahun: map['tahun'],
@@ -47,5 +51,5 @@ class Vehicle extends Equatable {
   );
 
   @override
-  List<Object?> get props => [id, platNomor, kmTerakhir];
+  List<Object?> get props => [id, platNomor, kmTerakhir, nora];
 }

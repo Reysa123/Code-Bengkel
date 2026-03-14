@@ -325,7 +325,11 @@ class _PurchaseFormScreenState extends State<PurchaseFormScreen> {
       total: _grandTotal,
     );
 
-    context.read<PurchaseCubit>().createPurchase(purchase, _items);
+    context.read<PurchaseCubit>().createPurchase(
+      purchase,
+      _items,
+      _selectedSupplier!.nama,
+    );
 
     // Listener di BlocBuilder bisa menangani navigasi setelah success
   }

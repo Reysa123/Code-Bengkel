@@ -164,6 +164,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
     int? selectedCustomerId = vehicle?.customerId;
 
     final platController = TextEditingController(text: vehicle?.platNomor);
+    final noraController = TextEditingController(text: vehicle?.nora);
     final merkController = TextEditingController(text: vehicle?.merk);
     final tipeController = TextEditingController(text: vehicle?.tipe);
     final tahunController = TextEditingController(text: vehicle?.tahun);
@@ -218,6 +219,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       const SizedBox(height: 20),
 
                       TextFormField(
+                        autofocus: true,
                         controller: platController,
                         textCapitalization: TextCapitalization.characters,
                         decoration: InputDecoration(
@@ -230,7 +232,19 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                         validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
                       ),
                       const SizedBox(height: 16),
-
+                      TextFormField(
+                        controller: noraController,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: InputDecoration(
+                          labelText: 'Nomor Rangka *',
+                          prefixIcon: const Icon(Icons.pin_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+                      ),
+                      const SizedBox(height: 16),
                       Row(
                         children: [
                           Expanded(
@@ -362,6 +376,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                                 platNomor: platController.text
                                     .trim()
                                     .toUpperCase(),
+                                nora: noraController.text.trim().toUpperCase(),
                                 merk: merkController.text.trim(),
                                 tipe: tipeController.text.trim(),
                                 tahun: tahunController.text.trim(),

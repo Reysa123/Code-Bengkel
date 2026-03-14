@@ -2,10 +2,10 @@
 // 🔥 WORK ORDER LIST SCREEN LENGKAP (Full fitur: search, status badge, print, ubah status, delete)
 
 import 'package:bengkel/presentation/screens/billing_screen.dart';
+import 'package:bengkel/presentation/screens/edit_work_order_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_assignment_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_detail_screen.dart';
-import 'package:bengkel/presentation/screens/work_order_search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -25,17 +25,71 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   final WorkOrderRepository _repository = WorkOrderRepository();
-
+  DateTime _selectedMonth = DateTime.now();
+  DateTimeRange? _dateRange;
   @override
   void initState() {
     super.initState();
     context.read<WorkOrderCubit>().loadAll();
+    _searchController.addListener(() {
+      setState(() => _searchQuery = _searchController.text.toLowerCase());
+    });
+    // Default: load bulan ini
+    final start = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
+    final end = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
+    context.read<WorkOrderCubit>().loadAll(
+      dateRange: DateTimeRange(start: start, end: end),
+    );
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  // Filter periode tampilan
+  String get periodText {
+    if (_dateRange != null) {
+      return '${DateFormat('d MMM').format(_dateRange!.start)} – '
+          '${DateFormat('d MMM yyyy').format(_dateRange!.end)}';
+    }
+    return DateFormat('MMMM yyyy').format(_selectedMonth);
+  }
+
+  Future<void> _pickMonth() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedMonth,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDatePickerMode: DatePickerMode.year,
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _selectedMonth = DateTime(picked.year, picked.month);
+        _dateRange = null;
+      });
+      // Default: load bulan ini
+      final start = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
+      final end = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
+      context.read<WorkOrderCubit>().loadAll(
+        dateRange: DateTimeRange(start: start, end: end),
+      );
+    }
+  }
+
+  Future<void> _pickDateRange() async {
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDateRange: _dateRange,
+    );
+    if (range != null && mounted) {
+      setState(() => _dateRange = range);
+      context.read<WorkOrderCubit>().loadAll(dateRange: range); // refresh
+    }
   }
 
   // ====================== PRINT ======================
@@ -64,35 +118,6 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
   }
 
   // ====================== DELETE ======================
-  void _showDeleteConfirm(WorkOrder wo) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Work Order?'),
-        content: Text(
-          'No WO: ${wo.noWo}\nTotal: Rp ${NumberFormat('#,###').format(wo.total)}\n\nData ini akan dihapus permanen.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () async {
-              await _repository.delete(wo.id!);
-              await context.read<WorkOrderCubit>().loadAll();
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Work Order dihapus')),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ====================== STATUS COLOR ======================
   Color _getStatusColor(String status) {
@@ -142,24 +167,65 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
       body: Column(
         children: [
           // Search Bar
-          Padding(
+          // Filter Periode & Search
+          Container(
             padding: const EdgeInsets.all(12),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Cari No WO atau Plat Nomor...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            color: Colors.indigo.shade50,
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.calendar_month, size: 18),
+                        label: Text(
+                          periodText,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.indigo),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _pickMonth,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.date_range, size: 18),
+                      label: const Text(
+                        'Rentang',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.indigo),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: _pickDateRange,
+                    ),
+                  ],
                 ),
-                filled: true,
-                fillColor: Colors.grey[100],
-              ),
-              onChanged: (value) =>
-                  setState(() => _searchQuery = value.toLowerCase()),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Cari No WO atau Plat Nomor...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  onChanged: (value) =>
+                      setState(() => _searchQuery = value.toLowerCase()),
+                ),
+              ],
             ),
           ),
-
           // List Work Order
           Expanded(
             child: BlocBuilder<WorkOrderCubit, WorkOrderState>(
@@ -186,13 +252,59 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                 }
 
                 if (state is WorkOrderLoaded) {
-                  final filtered = state.workOrders.where((wo) {
+                  var filtered = state.workOrders.where((wo) {
                     final searchText =
                         '${wo.noWo} ${wo.platNomor ?? ""} ${wo.merk ?? ""}'
                             .toLowerCase();
                     return searchText.contains(_searchQuery);
                   }).toList();
-
+                  // Filter tanggal jika ada
+                  if (_dateRange != null) {
+                    filtered = filtered.where((wo) {
+                      try {
+                        final woDate = DateFormat(
+                          'yyyy-MM-dd',
+                        ).parse(wo.tanggal);
+                        return woDate.isAfter(
+                              _dateRange!.start.subtract(
+                                const Duration(days: 1),
+                              ),
+                            ) &&
+                            woDate.isBefore(
+                              _dateRange!.end.add(const Duration(days: 1)),
+                            );
+                      } catch (e) {
+                        return true; // jika format tanggal salah, tetap tampilkan
+                      }
+                    }).toList();
+                  } else {
+                    // Default bulan ini
+                    final startOfMonth = DateTime(
+                      _selectedMonth.year,
+                      _selectedMonth.month,
+                      1,
+                    );
+                    final endOfMonth = DateTime(
+                      _selectedMonth.year,
+                      _selectedMonth.month + 1,
+                      0,
+                    );
+                    filtered = filtered.where((wo) {
+                      try {
+                        final woDate = DateFormat(
+                          'yyyy-MM-dd',
+                        ).parse(wo.tanggal);
+                        return woDate.isAfter(
+                              startOfMonth.subtract(const Duration(days: 1)),
+                            ) &&
+                            woDate.isBefore(
+                              endOfMonth.add(const Duration(days: 1)),
+                            );
+                      } catch (e) {
+                        return true;
+                      }
+                    }).toList();
+                  }
                   if (filtered.isEmpty) {
                     return const Center(
                       child: Text(
@@ -276,7 +388,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                         ),
                                         PopupMenuButton<String>(
                                           icon: const Icon(Icons.more_vert),
-                                          onSelected: (value) {
+                                          onSelected: (value) async {
                                             if (value == 'status') {
                                               _showStatusDialog(wo);
                                             } else if (value == 'cetakpart') {
@@ -340,7 +452,30 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                                 );
                                                 return;
                                               }
-                                              // Konfirmasi sebelum complete
+                                              List<String> d = [];
+                                              var s =
+                                                  await WorkOrderRepository()
+                                                      .getAllByWoId(wo.noWo);
+                                              for (var e in s) {
+                                                if (e['type'] == 'part') {
+                                                  d.add(e['status_item']);
+                                                }
+                                              }
+                                              if (d.contains('pending') ||
+                                                  d.contains('on_progress')) {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    backgroundColor:
+                                                        Colors.redAccent,
+                                                    content: Text(
+                                                      'WO belum dikerjakan atau belum cetak part.',
+                                                    ),
+                                                  ),
+                                                );
+                                                return;
+                                              }
                                               showDialog(
                                                 context: context,
                                                 builder: (context) => AlertDialog(
@@ -396,13 +531,35 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               );
                                             } else if (value == 'maintancewo') {
                                               // Navigasi ke screen maintenance WO
-                                              Navigator.push(
+                                              final List<Map<String, dynamic>>
+                                              result =
+                                                  await WorkOrderRepository()
+                                                      .getAllByWoId(wo.noWo);
+                                              await Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (_) =>
-                                                      WorkOrderSearchScreen(),
+                                                      EditWorkOrderScreen(
+                                                        initialVehicle: result,
+                                                      ),
                                                 ),
-                                              );
+                                              ).then((onValue) {
+                                                if (onValue == true) {
+                                                  // Jika data berhasil diupdate, tampilkan SnackBar sukses
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        'Update data  berhasil!',
+                                                      ),
+                                                      backgroundColor:
+                                                          Colors.green,
+                                                    ),
+                                                  );
+                                                }
+                                                return;
+                                              });
                                             }
                                           },
                                           itemBuilder: (context) => [

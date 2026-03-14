@@ -1,4 +1,5 @@
 import 'package:bengkel/data/repositories/vehicle_repository.dart';
+import 'package:bengkel/presentation/screens/historyunit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/vehicle.dart';
@@ -86,50 +87,88 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                     );
                   }
 
-                  return ListView.separated(
-                    itemCount: listToShow.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final vehicle = listToShow[index];
-                      return ListTile(
-                        leading: const CircleAvatar(
-                          child: Icon(Icons.directions_car),
-                        ),
-                        title: Text(
-                          vehicle.platNomor,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        subtitle: Text('${vehicle.merk} ${vehicle.tipe}'),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: () async {
-                          String vehicles = await VehicleRepository()
-                              .cekKendaraan(vehicle.id!);
-                          // Navigasi ke Form WO dengan data kendaraan terpilih
-
-                          if (vehicles != 'ok') {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(vehicles),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            return;
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => WorkOrderFormScreen(
-                                  initialVehicle: vehicle,
+                  return Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ListView.separated(
+                      itemCount: listToShow.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final vehicle = listToShow[index];
+                        return Row(
+                          spacing: 12,
+                          children: [
+                            Expanded(
+                              child: ListTile(
+                                leading: const CircleAvatar(
+                                  child: Icon(Icons.directions_car),
+                                ),
+                                title: Text(
+                                  vehicle.platNomor,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  '${vehicle.merk} ${vehicle.tipe}',
                                 ),
                               ),
-                            );
-                          }
-                        },
-                      );
-                    },
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                IconButton(
+                                  tooltip:"Buat Work Order",
+                                  onPressed: () async {
+                                    String vehicles = await VehicleRepository()
+                                        .cekKendaraan(vehicle.id!);
+                                    // Navigasi ke Form WO dengan data kendaraan terpilih
+
+                                    if (vehicles != 'ok') {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(vehicles),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                      return;
+                                    } else {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              WorkOrderFormScreen(
+                                                initialVehicle: vehicle,
+                                              ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  icon: Icon(Icons.create),
+                                ),
+                                IconButton(
+                                  tooltip:"History Kendaraan",
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            HistoryWorkOrderScreen(
+                                              searchKey: vehicle.nora,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                  icon: Icon(Icons.history),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   );
                 }
 

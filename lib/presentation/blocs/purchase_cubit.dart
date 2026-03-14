@@ -13,13 +13,14 @@ class PurchaseCubit extends Cubit<PurchaseState> {
 
   Future<void> createPurchase(
     Purchase purchase,
-    List<PurchaseItem> items,
+    List<PurchaseItem> items,String namaSupl
   ) async {
     emit(PurchaseLoading());
     try {
       final purchaseId = await _repository.createPurchaseWithItems(
         purchase,
         items,
+        namaSupl,
       );
 
       // Update stok semua part yang dibeli

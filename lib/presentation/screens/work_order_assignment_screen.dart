@@ -27,13 +27,11 @@ class _WorkOrderAssignmentScreenState extends State<WorkOrderAssignmentScreen> {
   final MechanicRepository _meRepo = MechanicRepository();
   cek() async {
     final assignedMechanics = await _meRepo.getAll();
-    print(widget.workOrder.mechanicId);
     setState(() {
       selectedMechanics = assignedMechanics
           .where((v) => v.id == widget.workOrder.mechanicId)
           .toList();
     });
-    print(selectedMechanics.toList().toString());
   }
 
   @override
@@ -58,7 +56,6 @@ class _WorkOrderAssignmentScreenState extends State<WorkOrderAssignmentScreen> {
 
     try {
       final mechanicIds = selectedMechanics.map((m) => m.id!).toList();
-      print(mechanicIds);
       // Panggil repository untuk assign multiple mechanics
       await _woRepo.assignMechanics(
         widget.workOrder.noWo,
@@ -154,7 +151,6 @@ class _WorkOrderAssignmentScreenState extends State<WorkOrderAssignmentScreen> {
                   }
 
                   if (state is MechanicLoaded) {
-                    print('state: $state');
                     final availableMechanics = state.mechanics;
 
                     if (availableMechanics.isEmpty) {

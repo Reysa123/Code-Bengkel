@@ -1,52 +1,26 @@
 // 6. lib/data/repositories/work_order_repository.dart  ← PALING PENTING
 
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
 import '../../core/database/database_helper.dart';
 import '../models/work_order.dart';
 import '../models/wo_item.dart';
 
 class WorkOrderRepository {
   final dbHelper = DatabaseHelper.instance;
-  Future<List<Map<String, dynamic>>> getAllByWo(String noWo) async {
+  Future<List<WorkOrder>> getAll({DateTimeRange? dateRange}) async {
     final db = await dbHelper.database;
-    final maps = await db.rawQuery(
-      '''
-      SELECT 
-      wo.*,
-      wi.id AS item_id,
-      wi.type AS item_type,
-      wi.item_id AS item_item_id,
-      CASE 
-        WHEN wi.type = 'service' THEN s.nama
-        WHEN wi.type = 'part' THEN p.nama
-        
-      END AS nama_item,
-      wi.qty AS item_qty,
-      wi.harga AS item_harga,
-      wi.subtotal AS item_subtotal,
-      v.plat_nomor,
-      v.merk,
-      v.tipe,
-      v.tahun,
-      v.warna,
-      c.nama AS nama_customer,
-      m.nama AS nama_mekanik
-    FROM work_orders wo
-    LEFT JOIN wo_items wi ON wo.no_wo = wi.wo_id
-    LEFT JOIN parts p ON wi.type = 'part' AND wi.item_id = p.id
-    LEFT JOIN services s ON wi.type = 'service' AND wi.item_id = s.id
-    LEFT JOIN vehicles v ON wo.vehicle_id = v.id
-    LEFT JOIN customers c ON v.customer_id = c.id
-    LEFT JOIN mechanics m ON wo.mechanic_id = m.id
-    WHERE wo.no_wo = ?
-    ''',
-      [noWo],
-    );
-    //print(maps.toList().toString());
-    return maps;
-  }
+    String where = '';
+    List<dynamic> args = [];
 
-  Future<List<WorkOrder>> getAll() async {
-    final db = await dbHelper.database;
+    if (dateRange != null) {
+      where = 'WHERE wo.tanggal BETWEEN ? AND ?';
+      args = [
+        DateFormat('yyyy-MM-dd').format(dateRange.start),
+        DateFormat('yyyy-MM-dd').format(dateRange.end),
+      ];
+    }
     final maps = await db.rawQuery('''
       SELECT 
       wo.*,
@@ -61,10 +35,109 @@ class WorkOrderRepository {
     LEFT JOIN vehicles v ON wo.vehicle_id = v.id
     LEFT JOIN customers c ON v.customer_id = c.id
     LEFT JOIN mechanics m ON wo.mechanic_id = m.id
-    ORDER BY wo.tanggal DESC
-    ''');
+    $where
+    ORDER BY wo.tanggal ASC, wo.no_wo DESC
+    ''', args);
     //print(maps.toList().toString());
     return maps.map((e) => WorkOrder.fromMap(e)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getWoIdByNora(String nora) async {
+    final db = await dbHelper.database;
+    final maps = await db.rawQuery(
+      '''
+      SELECT 
+      wo.*,
+      v.plat_nomor,
+      v.merk,
+      v.tipe,
+      v.tahun,
+      v.warna,
+      v.nora,
+      v.km_terakhir AS kmTerakhir,
+      CASE 
+        WHEN wi.type = 'service' THEN s.nama
+        WHEN wi.type = 'part' THEN p.nama
+        ELSE NULL
+      END AS nama_item,
+      CASE 
+        WHEN wi.type = 'service' THEN s.harga
+        WHEN wi.type = 'part' THEN p.harga_jual
+        ELSE NULL
+      END AS harga_item,
+      wi.item_id AS id_item,
+      wi.type AS type_item,
+      wi.qty AS qty_item,
+      wi.subtotal AS subtotal_item,
+      wi.status AS status_item,
+      c.nama AS nama_customer,
+      c.alamat,
+      c.no_hp,
+      m.nama AS nama_mekanik
+    FROM work_orders wo
+    LEFT JOIN wo_items wi ON wo.no_wo = wi.wo_id
+    LEFT JOIN services s ON wi.type = 'service' AND wi.item_id = s.id
+    LEFT JOIN parts p ON wi.type = 'part' AND wi.item_id = p.id
+    LEFT JOIN vehicles v ON wo.vehicle_id = v.id
+    LEFT JOIN customers c ON v.customer_id = c.id
+    LEFT JOIN mechanics m ON wo.mechanic_id = m.id
+    WHERE v.nora LIKE ? OR v.plat_nomor LIKE ?
+    ORDER BY wo.tanggal DESC
+    ''',
+      ['%$nora%', '%$nora%'],
+    );
+    print(maps.toList().toString());
+    return maps;
+  }
+
+  Future<List<Map<String, dynamic>>> getAllByWoId(String woId) async {
+    final db = await dbHelper.database;
+    final maps = await db.rawQuery(
+      '''
+      SELECT 
+      wo.*,
+      v.plat_nomor,
+      v.merk,
+      v.tipe,
+      v.tahun,
+      v.warna,
+      v.km_terakhir AS kmTerakhir,
+      CASE 
+        WHEN wi.type = 'service' THEN s.nama
+        WHEN wi.type = 'part' THEN p.nama
+        ELSE NULL
+      END AS nama_item,
+      CASE 
+        WHEN wi.type = 'service' THEN s.harga
+        WHEN wi.type = 'part' THEN p.harga_beli
+        ELSE NULL
+      END AS harga_beli_item,
+      CASE 
+        WHEN wi.type = 'service' THEN s.harga
+        WHEN wi.type = 'part' THEN p.harga_jual
+        ELSE NULL
+      END AS harga_jual_item,
+      wi.item_id AS item_id,
+      wi.type AS type_item,
+      wi.harga AS harga_item,
+      wi.qty AS qty_item,
+      wi.subtotal AS subtotal_item,
+      wi.status AS status_item,
+      c.nama AS nama_customer,
+      m.nama AS nama_mekanik
+    FROM work_orders wo
+    LEFT JOIN wo_items wi ON wo.no_wo = wi.wo_id
+    LEFT JOIN services s ON wi.type = 'service' AND wi.item_id = s.id
+    LEFT JOIN parts p ON wi.type = 'part' AND wi.item_id = p.id
+    LEFT JOIN vehicles v ON wo.vehicle_id = v.id
+    LEFT JOIN customers c ON v.customer_id = c.id
+    LEFT JOIN mechanics m ON wo.mechanic_id = m.id
+    WHERE wo.no_wo = ?
+    ''',
+      [woId],
+    );
+    //print(maps.toList().toString());
+    return maps;
   }
 
   Future<void> assignMechanics(String woId, List<int> mechanicIds) async {
@@ -72,8 +145,6 @@ class WorkOrderRepository {
     await db.transaction((txn) async {
       // Hapus assignment lama
       //await txn.delete('work_order_mechanics', where: 'work_order_id = ?', whereArgs: [woId]);
-      print('Deleted old mechanics for WO $woId');
-      print('Assigning new mechanics: $mechanicIds');
       // Insert baru
       for (final mid in mechanicIds) {
         await txn.update(
@@ -92,13 +163,15 @@ class WorkOrderRepository {
   }
 
   Future<void> insertWithItems(WorkOrder wo, List<WoItem> items) async {
-    print('Inserting Work Order: ${items.map((i) => i.toString()).toList()}');
     final db = await dbHelper.database;
-    //final woId = await insert(wo);
     await db.insert('work_orders', wo.toMap());
-    print(items.length);
+    await db.update(
+      'vehicles',
+      {'km_terakhir': wo.kmTerakhir},
+      where: 'id = ?',
+      whereArgs: [wo.vehicleId],
+    );
     for (var item in items) {
-      print(item.toString());
       // item.woId = woId;
       try {
         await db.insert('wo_items', {
@@ -109,16 +182,49 @@ class WorkOrderRepository {
           'harga': item.harga,
           'subtotal': item.subtotal,
         });
-
-        // Kurangi stok jika part
-        if (item.type == 'part') {
-          await db.rawUpdate('UPDATE parts SET stok = stok - ? WHERE id = ?', [
-            item.qty,
-            item.itemId,
-          ]);
-        }
       } catch (e) {
-        print('Error inserting item: $e');
+        throw Exception('Error inserting item: $e');
+      }
+    }
+  }
+
+  Future<void> updateWithItems(WorkOrder wo, List<WoItem> items) async {
+    final db = await dbHelper.database;
+    //final woId = await insert(wo);
+    try {
+      await db.update(
+        'work_orders',
+        wo.toMap(),
+        where: 'no_wo = ?',
+        whereArgs: [wo.noWo],
+      );
+      await db.delete(
+        'wo_items',
+        where: 'wo_id = ? AND status = ?',
+        whereArgs: [wo.noWo, 'pending'],
+      );
+      await db.update(
+        'vehicles',
+        {'km_terakhir': wo.kmTerakhir},
+        where: 'id = ?',
+        whereArgs: [wo.vehicleId],
+      );
+    } catch (e) {
+      throw Exception('Error updating WO: $e');
+    }
+    for (var item in items) {
+      // item.woId = woId;
+      try {
+        await db.insert('wo_items', {
+          'wo_id': item.woId,
+          'type': item.type,
+          'item_id': item.itemId,
+          'qty': item.qty,
+          'harga': item.harga,
+          'subtotal': item.subtotal,
+        });
+      } catch (e) {
+        throw Exception('Error inserting item: $e');
       }
     }
   }
@@ -220,8 +326,8 @@ class WorkOrderRepository {
     await db.update(
       'wo_items',
       {'status': 'completed'},
-      where: 'wo_id = ?',
-      whereArgs: [woId],
+      where: 'wo_id = ? AND type = ?',
+      whereArgs: [woId, 'part'],
     );
   }
 
@@ -235,8 +341,14 @@ class WorkOrderRepository {
         where: 'no_wo = ?',
         whereArgs: [woId],
       );
+      await db.update(
+        'wo_items',
+        {'status': 'completed'},
+        where: 'wo_id=? AND type=?',
+        whereArgs: [woId, 'service'],
+      );
     } catch (e) {
-      print('Error completing work order: $e');
+      throw Exception('Error completing work order: $e');
     }
   }
 
@@ -314,15 +426,44 @@ class WorkOrderRepository {
   }
 
   // lib/data/repositories/work_order_repository.dart
-  Future<void> kasirFinishWorkOrder(String woId, double paid) async {
+  Future<void> kasirFinishWorkOrder(
+    String woId,
+    double paid,
+    String nacus,
+    String tgl,
+  ) async {
     final db = await dbHelper.database;
-
+    String tgls = DateTime.now().toIso8601String();
     await db.update(
       'work_orders',
       {'status': 'paid', 'paid': paid}, // atau 'completed_and_paid'
       where: 'no_wo = ?',
       whereArgs: [woId],
     );
+    await db.insert('jurnal_umum', {
+      'created_at': tgls,
+      'tanggal': tgl,
+      'no_referensi': 'PAY-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus',
+      'kode_akun': '111',
+      'nama_akun': 'Piutang Usaha',
+      'debit': 0.00,
+      'kredit': paid,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgls,
+      'tanggal': tgl,
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus',
+      'kode_akun': '101',
+      'nama_akun': 'Kas',
+      'debit': paid,
+      'kredit': 0.00,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
   }
 
   // Finish WO + cetak kwitansi
@@ -330,9 +471,95 @@ class WorkOrderRepository {
     int woId,
     double paid,
     List<WoItem> items,
+    String nacus,
   ) async {
+    String tgl = DateTime.now().toIso8601String();
     final db = await dbHelper.database;
-
+    final wo = await getAllByWoId(woId.toString());
+    double hpart = 0, pendapatanpart = 0, pendapatanjasa = 0;
+    String plat = wo.first['plat_nomor'];
+    for (var e in wo) {
+      if (e['type_item'] == 'part') {
+        hpart += e['harga_beli_item'] * e['qty_item'];
+        pendapatanpart += e['harga_jual_item'] * e['qty_item'];
+      }
+      if (e['type_item'] == 'service') {
+        pendapatanjasa += e['harga_jual_item'] * e['qty_item'];
+      }
+    }
+    double disc = (pendapatanpart + pendapatanjasa) - paid;
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '111',
+      'nama_akun': 'Piutang Usaha',
+      'debit': paid,
+      'kredit': 0.00,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '501',
+      'nama_akun': 'Harga Pokok Penjualan Part',
+      'debit': hpart,
+      'kredit': 0.00,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Disc Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '602',
+      'nama_akun': 'Beban Discount',
+      'debit': disc,
+      'kredit': 0.00,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '401',
+      'nama_akun': 'Pendapatan Jasa/Service',
+      'debit': 0.00,
+      'kredit': pendapatanjasa,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '402',
+      'nama_akun': 'Pendapatan Penjualan Part',
+      'debit': 0.00,
+      'kredit': pendapatanpart,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '121',
+      'nama_akun': 'Persediaan Sparepart',
+      'debit': 0.00,
+      'kredit': hpart,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
     await db.update(
       'work_orders',
       {

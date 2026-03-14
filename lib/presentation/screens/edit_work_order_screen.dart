@@ -1,5 +1,7 @@
 // lib/presentation/screens/work_order_form_screen.dart
 
+import 'package:bengkel/data/repositories/work_order_repository.dart';
+import 'package:bengkel/utils/number_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -27,7 +29,6 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TabController _tabController;
-  final NumberFormat nf = NumberFormat('#,###');
   List<Service> _filteredServices = [];
   List<Part> _filteredParts = [];
   int _kmTerakhir = 0;
@@ -38,7 +39,6 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
   final TextEditingController _searchController = TextEditingController();
   final FocusNode kmFocusNode = FocusNode();
   // Data
-  final DateTime _selectedDate = DateTime.now();
   Mechanic? _selectedMechanic;
   final List<WoItem> _selectedItems = [];
   double _grandTotal = 0.0;
@@ -55,33 +55,37 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
   }
 
   void _generateNoWO() {
+    _noWoController.text = _selectedVehicle != null
+        ? '${_selectedVehicle!.first['no_wo']}'
+        : DateFormat('yyyyMMddHHmmss').format(DateTime.now());
     _kmTerakhir = widget.initialVehicle != null
-        ? widget.initialVehicle!.first['km_terakhir'] as int? ?? 0
+        ? widget.initialVehicle!.first['kmTerakhir'] ?? 0
         : 0;
     _kmController.text = _kmTerakhir > 0 ? _kmTerakhir.toString() : '0';
     _catatanController.text = widget.initialVehicle != null
-        ? widget.initialVehicle!.first['catatan'] as String? ?? ''
+        ? widget.initialVehicle!.first['catatan'] ?? ''
         : '';
-    _noWoController.text = widget.initialVehicle != null
-        ? widget.initialVehicle!.first['no_wo'] as String? ?? '0'
-        : "0";
-    _selectedItems.addAll(
-      widget.initialVehicle != null
-          ? (widget.initialVehicle!)
-                .map(
-                  (i) => WoItem(
-                    woId: int.parse(_noWoController.text),
-                    type: i['item_type'],
-                    itemId: i['item_id'],
-                    namaItem: i['nama_item'],
-                    qty: i['item_qty'],
-                    harga: i['item_harga'].toDouble(),
-                    subtotal: i['item_subtotal'].toDouble(),
-                  ),
-                )
-                .toList()
-          : [],
-    );
+    _selectedMechanic = widget.initialVehicle != null
+        ? Mechanic(
+            id: widget.initialVehicle!.first['mechanic_id'],
+            nama: widget.initialVehicle!.first['nama_mekanik'] ?? '',
+          )
+        : null;
+    for (var item in widget.initialVehicle ?? []) {
+      _selectedItems.add(
+        WoItem(
+          woId: int.parse(_noWoController.text),
+          type: item['type_item'],
+          itemId: item['item_id'],
+          namaItem: item['nama_item'],
+          qty: item['qty_item'],
+          harga: item['harga_item'],
+          subtotal: item['subtotal_item'],
+          status: item['status_item'],
+        ),
+      );
+    }
+    _updateGrandTotal();
   }
 
   void _updateGrandTotal() {
@@ -95,19 +99,19 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
 
   @override
   Widget build(BuildContext context) {
-    final vehicle = widget.initialVehicle;
+    final vehicle = widget.initialVehicle!.first;
     var widthLabel = 130.0;
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Edit PKB / Work Order'),
+        title: const Text('Buat PKB / Work Order'),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Center(
               child: Text(
-                vehicle!.first['no_wo'] ?? '0',
+                _noWoController.text,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
@@ -117,9 +121,25 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
               backgroundColor: Colors.blue.shade900,
               foregroundColor: Colors.white,
             ),
-            onPressed: _saveWorkOrder,
+            onPressed:
+                _selectedVehicle!.first['status'] == 'pending' ||
+                    _selectedVehicle!.first['status'] == 'on_progress'
+                ? _saveWorkOrder
+                : _selectedVehicle!.first['status'] == 'completed'
+                ? _batalCompleted
+                : null,
             icon: const Icon(Icons.save, color: Colors.green),
-            label: const Text('Simpan & Cetak'),
+            label:
+                _selectedVehicle!.first['status'] == 'pending' ||
+                    _selectedVehicle!.first['status'] == 'on_progress'
+                ? const Text(
+                    'Simpan & Update',
+                    style: TextStyle(color: Colors.white),
+                  )
+                : const Text(
+                    'Batal Komplit',
+                    style: TextStyle(color: Colors.white),
+                  ),
           ),
           const SizedBox(width: 10),
         ],
@@ -137,14 +157,14 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
                     Expanded(
                       child: _buildInfoRow(
                         'No. Polisi',
-                        vehicle.first['plat_nomor'] as String,
+                        vehicle['plat_nomor'] ?? '-',
                         widthLabel,
                       ),
                     ),
                     Expanded(
                       child: _buildInfoRow(
                         'Merk/Tipe',
-                        '${vehicle.first['merk']} ${vehicle.first['tipe']}',
+                        '${vehicle['merk'] ?? '-'} ${vehicle['tipe'] ?? '-'}',
                         widthLabel,
                       ),
                     ),
@@ -155,14 +175,14 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
                     Expanded(
                       child: _buildInfoRow(
                         'Warna',
-                        vehicle.first['warna'] as String,
+                        vehicle['warna'] ?? '-',
                         widthLabel,
                       ),
                     ),
                     Expanded(
                       child: _buildInfoRow(
                         'Tahun',
-                        vehicle.first['tahun'].toString(),
+                        vehicle['tahun'] ?? '-',
                         widthLabel,
                       ),
                     ),
@@ -225,28 +245,65 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
     );
   }
 
+  void _batalCompleted() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Batal Status Completed'),
+        content: const Text(
+          'Apakah Anda yakin ingin membatalkan status completed?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tidak', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // Update status item menjadi pending
+              await WorkOrderRepository().updateStatus(
+                int.parse(_noWoController.text),
+                'on_progress',
+                0,
+              );
+              // Simpan perubahan
+              Navigator.pop(context); // Tutup dialog
+            },
+            child: const Text(
+              'Ya, Batalkan',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _saveWorkOrder() {
     if (_formKey.currentState!.validate() &&
         _selectedVehicle != null &&
         _selectedItems.isNotEmpty) {
       if (_kmController.text.isNotEmpty &&
           (int.tryParse(_kmController.text) ?? 0) >= _kmTerakhir) {
+        // print(_catatanController.text);
         final wo = WorkOrder(
-          noWo: _noWoController.text,
-          tanggal: DateFormat('yyyy-MM-dd').format(_selectedDate),
-          vehicleId: _selectedVehicle!.first['vehicle_id'] as int,
+          noWo: _selectedVehicle!.first['no_wo'],
+          tanggal:
+              _selectedVehicle!.first['tanggal'] ??
+              DateTime.now().toIso8601String(),
+          vehicleId: _selectedVehicle!.first['vehicle_id'],
           mechanicId: _selectedMechanic?.id ?? 0,
           total: _grandTotal,
-          status: 'pending',
+          status: _selectedVehicle!.first['status'] ?? 'pending',
+          catatan: _catatanController.text,
+          kmTerakhir: int.tryParse(_kmController.text) ?? 0,
         );
-        context.read<WorkOrderCubit>().createWorkOrder(wo, _selectedItems);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Simpan data  berhasil!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
+        context.read<WorkOrderCubit>().updateWorkOrder(wo, _selectedItems);
+
+        Navigator.pop(
+          context,
+          true,
+        ); // Kembali ke halaman sebelumnya dengan hasil "true" untuk refresh
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -504,6 +561,9 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
           SizedBox(
             width: 200,
             child: TextFormField(
+              enabled:
+                  _selectedVehicle!.first['status'] == 'pending' ||
+                  _selectedVehicle!.first['status'] == 'on_progress',
               controller: _kmController,
               focusNode: kmFocusNode,
               keyboardType: TextInputType.number,
@@ -522,17 +582,27 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
           BlocBuilder<MechanicCubit, MechanicState>(
             builder: (context, state) {
               if (state is MechanicLoaded) {
-                return DropdownButtonFormField<Mechanic>(
-                  initialValue: _selectedMechanic,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
+                return IgnorePointer(
+                  ignoring:
+                      _selectedVehicle!.first['status'] == 'finished' ||
+                      _selectedVehicle!.first['status'] == 'paid' ||
+                      _selectedVehicle!.first['status'] == 'completed',
+                  child: DropdownButtonFormField<Mechanic>(
+                    initialValue: _selectedMechanic,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      enabled:
+                          _selectedVehicle!.first['status'] == 'pending' ||
+                          _selectedVehicle!.first['status'] == 'on_progress',
+                    ),
+                    items: state.mechanics
+                        .map(
+                          (m) =>
+                              DropdownMenuItem(value: m, child: Text(m.nama)),
+                        )
+                        .toList(),
+                    onChanged: (val) => setState(() => _selectedMechanic = val),
                   ),
-                  items: state.mechanics
-                      .map(
-                        (m) => DropdownMenuItem(value: m, child: Text(m.nama)),
-                      )
-                      .toList(),
-                  onChanged: (val) => setState(() => _selectedMechanic = val),
                 );
               }
               return const CircularProgressIndicator();
@@ -545,6 +615,9 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
           ),
           const SizedBox(height: 8),
           TextFormField(
+            enabled:
+                _selectedVehicle!.first['status'] == 'pending' ||
+                _selectedVehicle!.first['status'] == 'on_progress',
             controller: _catatanController,
             maxLines: 5,
             decoration: const InputDecoration(
@@ -558,16 +631,21 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
   }
 
   Widget _buildTabItems(String type) {
-    var filteredItems = type == 'service'
-        ? _selectedItems.where((i) => i.type == 'service').toList()
-        : _selectedItems.where((i) => i.type == 'part').toList();
+    final filteredItems = _selectedItems
+        .where((item) => item.type == type)
+        .toList();
 
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: ElevatedButton.icon(
-            onPressed: () => _showAddItemDialog(type == 'service'),
+            onPressed:
+                _selectedVehicle!.first['status'] == 'finished' ||
+                    _selectedVehicle!.first['status'] == 'paid' ||
+                    _selectedVehicle!.first['status'] == 'completed'
+                ? null
+                : () => _showAddItemDialog(type == 'service'),
             icon: const Icon(Icons.add),
             label: Text(type == 'service' ? 'Tambah Jasa' : 'Tambah Part'),
           ),
@@ -637,11 +715,31 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => setState(() {
-                            _selectedItems.remove(item);
-                            _updateGrandTotal();
-                          }),
+                          icon: Icon(
+                            Icons.delete,
+                            color:
+                                item.status == 'completed' ||
+                                    _selectedVehicle!.first['status'] ==
+                                        'finished' ||
+                                    _selectedVehicle!.first['status'] ==
+                                        'paid' ||
+                                    _selectedVehicle!.first['status'] ==
+                                        'completed'
+                                ? Colors.grey
+                                : Colors.red,
+                          ),
+                          onPressed:
+                              item.status == 'completed' ||
+                                  _selectedVehicle!.first['status'] ==
+                                      'finished' ||
+                                  _selectedVehicle!.first['status'] == 'paid' ||
+                                  _selectedVehicle!.first['status'] ==
+                                      'completed'
+                              ? null
+                              : () => setState(() {
+                                  _selectedItems.remove(item);
+                                  _updateGrandTotal();
+                                }),
                         ),
                       ],
                     ),

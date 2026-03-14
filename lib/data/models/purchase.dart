@@ -14,7 +14,7 @@ class Purchase extends Equatable {
     required this.tanggal,
     required this.supplierId,
     required this.total,
-    this.status = 'pending',
+    this.status = 'completed',
   });
 
   Map<String, dynamic> toMap() {

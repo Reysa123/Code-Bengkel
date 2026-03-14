@@ -208,6 +208,8 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
           mechanicId: _selectedMechanic?.id ?? 0,
           total: _grandTotal,
           status: 'pending',
+          catatan: _catatanController.text,
+          kmTerakhir: int.tryParse(_kmController.text) ?? 0,
         );
         context.read<WorkOrderCubit>().createWorkOrder(wo, _selectedItems);
         ScaffoldMessenger.of(context).showSnackBar(

@@ -11,6 +11,7 @@ class WoItem extends Equatable {
   final double? discountPercent; // diskon % per item (0–100)
   final double? discountAmount;
   final double subtotal;
+  final String? status;
 
   const WoItem({
     this.id,
@@ -23,6 +24,7 @@ class WoItem extends Equatable {
     this.discountPercent = 0.0,
     this.discountAmount,
     required this.subtotal,
+    this.status,
   });
   double get finalPrice {
     final disc = (harga * (discountPercent ?? 0) / 100);
@@ -64,6 +66,7 @@ class WoItem extends Equatable {
     'harga': harga,
     'discount_percent': discountPercent,
     'subtotal': subtotal,
+    'status': status,
   };
 
   factory WoItem.fromMap(Map<String, dynamic> map) => WoItem(

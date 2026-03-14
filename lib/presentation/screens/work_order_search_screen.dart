@@ -1,10 +1,5 @@
-import 'package:bengkel/core/database/database_helper.dart';
-import 'package:bengkel/data/models/vehicle.dart';
-import 'package:bengkel/data/models/work_order.dart';
 import 'package:bengkel/data/repositories/work_order_repository.dart';
 import 'package:bengkel/presentation/screens/edit_work_order_screen.dart';
-import 'package:bengkel/presentation/screens/work_order_detail_screen.dart';
-import 'package:bengkel/presentation/screens/work_order_form_screen.dart';
 import 'package:flutter/material.dart';
 
 class WorkOrderSearchScreen extends StatefulWidget {
@@ -15,6 +10,13 @@ class WorkOrderSearchScreen extends StatefulWidget {
 }
 
 class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
+  final TextEditingController searchController = TextEditingController();
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,18 +26,17 @@ class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
   }
 
   Widget _buildSearchInput(BuildContext context) {
-    final TextEditingController searchController = TextEditingController();
-
     return Padding(
-      padding: const EdgeInsets.all(10.0),
+      padding: const EdgeInsets.all(15.0),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withAlpha(5),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -43,11 +44,15 @@ class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
         ),
         child: TextField(
           controller: searchController,
+          autofocus: true,
           textCapitalization: TextCapitalization.characters,
           decoration: InputDecoration(
             hintText: 'Cari No. Work Order...',
             hintStyle: TextStyle(color: Colors.grey[400]),
-            border: InputBorder.none,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
             prefixIcon: const Icon(
               Icons.assignment_rounded,
               color: Colors.blueAccent,
@@ -79,7 +84,7 @@ class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withAlpha(5),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -125,15 +130,31 @@ class _WorkOrderSearchScreenState extends State<WorkOrderSearchScreen> {
   Future<void> _searchWorkOrder(String query, BuildContext context) async {
     if (query.isEmpty) return;
 
-    final result = await WorkOrderRepository().getAllByWo(query);
+    // Cari di database melalui Cubit/Provider/Repository
+    // Misal kita ambil dari database local:
+    final List<Map<String, dynamic>> result = await WorkOrderRepository()
+        .getAllByWoId(query);
+
     if (result.isNotEmpty) {
-      print(result.toString());
-      Navigator.push(
+      // Jika ADA, arahkan ke Detail Screen
+
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => EditWorkOrderScreen(initialVehicle: result),
         ),
-      );
+      ).then((onValue) {
+        if (onValue == true) {
+          // Jika data berhasil diupdate, tampilkan SnackBar sukses
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Update data  berhasil!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+        return;
+      });
     } else {
       // Jika GAGAL, tampilkan Dialog Modern
       _showErrorDialog(context, query);
