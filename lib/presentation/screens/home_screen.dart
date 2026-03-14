@@ -326,9 +326,9 @@ class DashboardPage extends StatelessWidget {
     IconData icon,
     Color color,
   ) {
-    return Container(
-      padding: EdgeInsets.all(4),
-      child: Expanded(
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.all(4),
         child: Card(
           elevation: 3,
           child: Padding(
