@@ -1,3 +1,4 @@
+import 'package:bengkel/core/constants/app_constants.dart';
 import 'package:bengkel/data/models/wo_item.dart';
 import 'package:bengkel/data/models/work_order.dart';
 import 'package:bengkel/utils/number_format.dart';
@@ -17,12 +18,12 @@ Future<void> printWorkOrderReceipt(WorkOrder wo, List<WoItem> items) async {
           // Header Kwitansi
           pw.Center(
             child: pw.Text(
-              'KWITANSI RESMI',
+              'KWITANSI',
               style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             ),
           ),
           pw.Center(
-            child: pw.Text('BENGKEL ABC', style: pw.TextStyle(fontSize: 14)),
+            child: pw.Text(AppConstants.companyName, style: pw.TextStyle(fontSize: 14)),
           ),
           pw.SizedBox(height: 8),
           pw.Center(

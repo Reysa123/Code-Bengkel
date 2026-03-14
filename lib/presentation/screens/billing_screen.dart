@@ -107,15 +107,7 @@ class _BillingScreenState extends State<BillingScreen> {
       final receiptData = await _repo.getWorkOrderForReceipt(
         widget.workOrder.noWo,
       );
-      print('Data untuk cetak: ${receiptData.toString()}');
-      //final wo = WorkOrder.fromMap(receiptData['wo']);
-      // final items = (receiptData['items'] as List)
-      //     .map((e) => WoItem.fromMap(e))
-      //     .toList();
-      // print(
-      //   'Data untuk cetak: WO=${wo.toMap()}, items=${items.map((i) => i.toMap()).toList()}',
-      // );
-      //await printWorkOrderReceipt(wo, []);
+     
 
       if (!mounted) return;
 

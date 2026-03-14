@@ -11,6 +11,7 @@ class AppConstants {
   static const String companyName = 'Bengkel ABC';
   static const String companyAddress = 'Jl. Raya Denpasar No. 123, Bali';
   static const String companyPhone = '(0361) 123456';
+  static const String logoPath = 'images/logo.png';
 
   // ==================== DATABASE ====================
   static const String dbName = 'bengkel.db';

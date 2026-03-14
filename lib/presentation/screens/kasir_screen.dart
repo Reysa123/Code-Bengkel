@@ -1,9 +1,11 @@
 // lib/presentation/screens/kasir_screen.dart
 
+import 'package:bengkel/utils/printkasir.dart';
 import 'package:bengkel/utils/ribuan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:printing/printing.dart';
 
 import '../../data/models/work_order.dart';
 import '../../data/models/wo_item.dart';
@@ -22,6 +24,7 @@ class KasirScreen extends StatefulWidget {
 class _KasirScreenState extends State<KasirScreen> {
   WorkOrder? _selectedWO;
   List<WoItem> items = [];
+  double total = 0.0;
   double _totalDue = 0.0;
   double _paidAmount = 0.0;
   double _change = 0.0;
@@ -59,6 +62,9 @@ class _KasirScreenState extends State<KasirScreen> {
               (item.harga * ((item.discountPercent ?? 0) / 100)) * item.qty;
 
           return sum + (item.subtotal - disc);
+        });
+        total = items.fold(0.0, (sum, item) {
+          return sum + item.subtotal;
         });
         _isLoading = false;
         _selectedWO = wo;
@@ -106,22 +112,31 @@ class _KasirScreenState extends State<KasirScreen> {
 
     try {
       // 1. Update status ke 'paid' / 'finished'
-      await _repo.kasirFinishWorkOrder(_selectedWO!.noWo, _paidAmount, nacus, tglWo);
+      await _repo.kasirFinishWorkOrder(
+        _selectedWO!.noWo,
+        _paidAmount,
+        nacus,
+        tglWo,
+      );
 
       // 2. Refresh list WO
       context.read<WorkOrderCubit>().loadAll();
 
       // 3. Cetak kwitansi
-      // final receiptData = await _repo.getWorkOrderForReceipt(_selectedWO!.noWo);
-      // final wo = WorkOrder.fromMap(receiptData['wo']);
-      // final items = (receiptData['items'] as List)
-      //     .map((e) => WoItem.fromMap(e as Map<String, dynamic>))
-      //     .toList();
-
+      final pdfBytes = await generateReceiptPdf(
+        workOrder: _selectedWO!,
+        items: items,
+        grandTotalBeforeDisc: total,
+        grandTotalAfterDisc: _paidAmount,
+        cashierName: "Kasir", // ambil dari auth atau input jika ada
+      );
       // await printWorkOrderReceipt(wo, items);
 
       if (!mounted) return;
-
+      await Printing.layoutPdf(
+        onLayout: (_) => pdfBytes,
+        name: 'Kwitansi_WO_${_selectedWO!.noWo}.pdf',
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Pembayaran lunas! Kwitansi dicetak.'),

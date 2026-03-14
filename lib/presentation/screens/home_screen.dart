@@ -1,6 +1,7 @@
 // ================================================
 // 2. lib/presentation/screens/home_screen.dart
 // ================================================
+import 'package:bengkel/core/constants/app_constants.dart';
 import 'package:bengkel/presentation/screens/kasir_screen.dart';
 import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
 import 'package:bengkel/presentation/screens/neraca_jurnal_screen.dart';
@@ -88,8 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             // Header Drawer
             UserAccountsDrawerHeader(
-              accountName: const Text('Bengkel ABC'),
-              accountEmail: const Text('Jl. Raya Denpasar - Bali'),
+              accountName: const Text(AppConstants.companyName),
+              accountEmail: const Text(AppConstants.companyAddress),
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Image.asset(

@@ -87,79 +87,88 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                     );
                   }
 
-                  return ListView.separated(
-                    itemCount: listToShow.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final vehicle = listToShow[index];
-                      return Row(
-                        spacing: 12,
-                        children: [
-                          Expanded(
-                            child: ListTile(
-                              leading: const CircleAvatar(
-                                child: Icon(Icons.directions_car),
-                              ),
-                              title: Text(
-                                vehicle.platNomor,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
+                  return Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ListView.separated(
+                      itemCount: listToShow.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final vehicle = listToShow[index];
+                        return Row(
+                          spacing: 12,
+                          children: [
+                            Expanded(
+                              child: ListTile(
+                                leading: const CircleAvatar(
+                                  child: Icon(Icons.directions_car),
+                                ),
+                                title: Text(
+                                  vehicle.platNomor,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  '${vehicle.merk} ${vehicle.tipe}',
                                 ),
                               ),
-                              subtitle: Text('${vehicle.merk} ${vehicle.tipe}'),
                             ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                onPressed: () async {
-                                  String vehicles = await VehicleRepository()
-                                      .cekKendaraan(vehicle.id!);
-                                  // Navigasi ke Form WO dengan data kendaraan terpilih
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                IconButton(
+                                  tooltip:"Buat Work Order",
+                                  onPressed: () async {
+                                    String vehicles = await VehicleRepository()
+                                        .cekKendaraan(vehicle.id!);
+                                    // Navigasi ke Form WO dengan data kendaraan terpilih
 
-                                  if (vehicles != 'ok') {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(vehicles),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                    return;
-                                  } else {
+                                    if (vehicles != 'ok') {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(vehicles),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                      return;
+                                    } else {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              WorkOrderFormScreen(
+                                                initialVehicle: vehicle,
+                                              ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  icon: Icon(Icons.create),
+                                ),
+                                IconButton(
+                                  tooltip:"History Kendaraan",
+                                  onPressed: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            WorkOrderFormScreen(
-                                              initialVehicle: vehicle,
+                                            HistoryWorkOrderScreen(
+                                              searchKey: vehicle.nora,
                                             ),
                                       ),
                                     );
-                                  }
-                                },
-                                icon: Icon(Icons.create),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          HistoryWorkOrderScreen(
-                                            searchKey: vehicle.nora,
-                                          ),
-                                    ),
-                                  );
-                                },
-                                icon: Icon(Icons.history),
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
+                                  },
+                                  icon: Icon(Icons.history),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   );
                 }
 

@@ -1,3 +1,4 @@
+import 'package:bengkel/core/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -99,7 +100,7 @@ class _HistoryWorkOrderScreenState extends State<HistoryWorkOrderScreen> {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'BENGKEL ABC',
+                  AppConstants.companyName,
                   style: pw.TextStyle(
                     fontSize: 20,
                     fontWeight: pw.FontWeight.bold,

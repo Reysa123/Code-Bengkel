@@ -1,3 +1,4 @@
+import 'package:bengkel/core/constants/app_constants.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -19,7 +20,7 @@ Future<void> printWorkOrderInvoice(WorkOrder wo, List<WoItem> items) async {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Text('BENGKEL ABC', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
+              pw.Text(AppConstants.companyName, style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
