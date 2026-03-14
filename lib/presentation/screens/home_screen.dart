@@ -209,12 +209,12 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Pengaturan'),
               onTap: () {},
             ),
-            const Spacer(),
+            const SizedBox(height: 20),
             const ListTile(leading: Icon(Icons.logout), title: Text('Keluar')),
           ],
         ),
       ),
-      body: _screens[_selectedIndex],
+      body: _screens[selectedIndex],
     );
   }
 }

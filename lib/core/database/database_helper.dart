@@ -111,16 +111,13 @@ class DatabaseHelper {
     )''');
 
     // 1. Tabel Daftar Akun (Chart of Accounts)
-    await db.execute('''
-      CREATE TABLE accounts (
+    await db.execute('''CREATE TABLE accounts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         code TEXT NOT NULL UNIQUE,
         name TEXT NOT NULL,
         type TEXT NOT NULL CHECK(type IN ('asset','liability','equity','revenue','expense')),
-        normal_balance TEXT NOT NULL CHECK(normal_balance IN ('debit','kredit')),
-        
-      )
-    ''');
+        normal_balance TEXT NOT NULL CHECK(normal_balance IN ('debit','kredit'))        
+      )''');
     await db.execute('''
 CREATE TABLE jurnal_umum (
       id_jurnal       INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -204,7 +201,6 @@ CREATE TABLE jurnal_umum (
         'name': acc['name'],
         'type': acc['type'],
         'normal_balance': acc['normal_balance'],
-        'is_active': 1,
       });
     }
     await batch.commit(noResult: true);
