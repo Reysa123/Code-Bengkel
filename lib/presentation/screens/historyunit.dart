@@ -56,7 +56,6 @@ class _HistoryWorkOrderScreenState extends State<HistoryWorkOrderScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print(e.toString());
       setState(() {
         _errorMessage = 'Gagal memuat data: $e';
         _isLoading = false;
@@ -388,7 +387,7 @@ class _HistoryWorkOrderScreenState extends State<HistoryWorkOrderScreen> {
                             leading: CircleAvatar(
                               backgroundColor: _getStatusColor(
                                 wo['status'],
-                              ).withOpacity(0.2),
+                              ).withAlpha(2),
                               child: Icon(
                                 Icons.receipt_long,
                                 color: _getStatusColor(wo['status']),

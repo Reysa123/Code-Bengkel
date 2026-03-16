@@ -218,7 +218,7 @@ class _NeracaJurnalScreenState extends State<NeracaJurnalScreen>
                     children: [
                       ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: color.withOpacity(0.1),
+                          backgroundColor: color.withAlpha(2),
                           child: Icon(Icons.account_balance, color: color),
                         ),
                         title: Text(
@@ -316,7 +316,7 @@ class _NeracaJurnalScreenState extends State<NeracaJurnalScreen>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
-            colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+            colors: [color.withAlpha(15), color.withAlpha(5)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -324,7 +324,7 @@ class _NeracaJurnalScreenState extends State<NeracaJurnalScreen>
         child: ListTile(
           leading: CircleAvatar(
             radius: 28,
-            backgroundColor: color.withOpacity(0.2),
+            backgroundColor: color.withAlpha(2),
             child: Icon(Icons.account_balance_wallet, color: color, size: 28),
           ),
           title: Text(

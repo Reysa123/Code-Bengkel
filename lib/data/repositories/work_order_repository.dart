@@ -86,7 +86,6 @@ class WorkOrderRepository {
     ''',
       ['%$nora%', '%$nora%'],
     );
-    print(maps.toList().toString());
     return maps;
   }
 

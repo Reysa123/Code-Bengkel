@@ -20,11 +20,23 @@ Future<void> printWorkOrderInvoice(WorkOrder wo, List<WoItem> items) async {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Text(AppConstants.companyName, style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
+              pw.Text(
+                AppConstants.companyName,
+                style: pw.TextStyle(
+                  fontSize: 22,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
-                  pw.Text('INVOICE / NOTA WO', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+                  pw.Text(
+                    'INVOICE / NOTA WO',
+                    style: pw.TextStyle(
+                      fontSize: 16,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
                   pw.Text('No: ${wo.noWo}'),
                   pw.Text('Tanggal: ${wo.tanggal}'),
                 ],
@@ -34,22 +46,31 @@ Future<void> printWorkOrderInvoice(WorkOrder wo, List<WoItem> items) async {
           pw.SizedBox(height: 20),
 
           // Info Kendaraan & Customer
-          pw.Text('Kendaraan: ${wo.platNomor ?? "-"} - ${wo.merk ?? ""} ${wo.tipe ?? ""}'),
+          pw.Text(
+            'Kendaraan: ${wo.platNomor ?? "-"} - ${wo.merk ?? ""} ${wo.tipe ?? ""}',
+          ),
           pw.Text('Customer: ${wo.namaCustomer ?? "-"}'),
           pw.SizedBox(height: 20),
 
           // Tabel Item
           pw.TableHelper.fromTextArray(
             headers: ['Item', 'Qty', 'Harga Satuan', 'Subtotal'],
-            data: items.map((item) => [
-              item.namaItem,
-              item.qty.toString(),
-              nf.format(item.harga),
-              nf.format(item.subtotal),
-            ]).toList(),
+            data: items
+                .map(
+                  (item) => [
+                    item.namaItem,
+                    item.qty.toString(),
+                    nf.format(item.harga),
+                    nf.format(item.subtotal),
+                  ],
+                )
+                .toList(),
             border: null,
             headerDecoration: pw.BoxDecoration(color: PdfColors.blue800),
-            headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold),
+            headerStyle: pw.TextStyle(
+              color: PdfColors.white,
+              fontWeight: pw.FontWeight.bold,
+            ),
             cellHeight: 30,
             cellAlignments: {
               0: pw.Alignment.centerLeft,
@@ -67,10 +88,20 @@ Future<void> printWorkOrderInvoice(WorkOrder wo, List<WoItem> items) async {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.end,
             children: [
-              pw.Text('TOTAL :  ', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+              pw.Text(
+                'TOTAL :  ',
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
               pw.Text(
                 'Rp ${nf.format(wo.total)}',
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.green800),
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.green800,
+                ),
               ),
             ],
           ),

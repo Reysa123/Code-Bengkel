@@ -101,15 +101,15 @@ class _BillingScreenState extends State<BillingScreen> {
       );
 
       // 2. Refresh WO di cubit (opsional)
+    if (!mounted) return;
       context.read<WorkOrderCubit>().loadAll();
 
       // 3. Cetak kwitansi
-      final receiptData = await _repo.getWorkOrderForReceipt(
-        widget.workOrder.noWo,
-      );
-     
+      // final receiptData = await _repo.getWorkOrderForReceipt(
+      //   widget.workOrder.noWo,
+      // );
 
-      if (!mounted) return;
+      
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

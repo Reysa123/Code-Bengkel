@@ -108,8 +108,9 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
     if (newStatus == 'paid') paid = wo.total;
 
     await _repository.updateStatus(wo.id!, newStatus, paid);
+     if (!mounted) return;
     await context.read<WorkOrderCubit>().loadAll();
-
+ if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Status diubah menjadi ${newStatus.toUpperCase()}'),
@@ -456,6 +457,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               var s =
                                                   await WorkOrderRepository()
                                                       .getAllByWoId(wo.noWo);
+                                                      
                                               for (var e in s) {
                                                 if (e['type'] == 'part') {
                                                   d.add(e['status_item']);
@@ -463,6 +465,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               }
                                               if (d.contains('pending') ||
                                                   d.contains('on_progress')) {
+                                                    
                                                 ScaffoldMessenger.of(
                                                   context,
                                                 ).showSnackBar(
@@ -476,6 +479,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                                 );
                                                 return;
                                               }
+                                               
                                               showDialog(
                                                 context: context,
                                                 builder: (context) => AlertDialog(

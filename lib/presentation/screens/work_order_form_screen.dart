@@ -1,5 +1,7 @@
 // lib/presentation/screens/work_order_form_screen.dart
 
+import 'package:bengkel/data/repositories/work_order_repository.dart';
+import 'package:bengkel/utils/printpk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -195,7 +197,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
     );
   }
 
-  void _saveWorkOrder() {
+  void _saveWorkOrder() async {
     if (_formKey.currentState!.validate() &&
         _selectedVehicle != null &&
         _selectedItems.isNotEmpty) {
@@ -218,6 +220,9 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
             backgroundColor: Colors.green,
           ),
         );
+        WorkOrderRepository()
+            .getAllByWoId(_noWoController.text)
+            .then((v) => generatePKPDF(v));
         Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

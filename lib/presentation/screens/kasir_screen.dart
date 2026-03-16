@@ -118,7 +118,7 @@ class _KasirScreenState extends State<KasirScreen> {
         nacus,
         tglWo,
       );
-
+ if (!mounted) return;
       // 2. Refresh list WO
       context.read<WorkOrderCubit>().loadAll();
 

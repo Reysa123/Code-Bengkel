@@ -45,7 +45,6 @@ class VehicleRepository {
     );
 
     for (var e in maps) {
-      print(e.toString());
       if (e['status'] == 'pending' ||
           e['status'] == 'on_progress' ||
           e['status'] == 'completed' ||

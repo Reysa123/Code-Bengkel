@@ -266,6 +266,7 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
                 'on_progress',
                 0,
               );
+             
               // Simpan perubahan
               Navigator.pop(context); // Tutup dialog
             },

@@ -63,9 +63,9 @@ class _WorkOrderAssignmentScreenState extends State<WorkOrderAssignmentScreen> {
         // Optional: newStatus: 'on_progress'
       );
 
-      if (context.mounted) {
+      if (!mounted) return;
         context.read<WorkOrderCubit>().loadAll();
-      }
+      
 
       if (context.mounted) {
         final mechanicNames = selectedMechanics.map((m) => m.nama).join(', ');

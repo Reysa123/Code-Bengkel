@@ -525,6 +525,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                               if (result != null) {
                                 onSuccess(result);
                                 if (context.mounted) Navigator.pop(context);
+                                
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
