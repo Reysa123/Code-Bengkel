@@ -1,4 +1,3 @@
-
 import 'package:bengkel/core/constants/app_constants.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -10,6 +9,11 @@ import '../../utils/number_format.dart'; // nf = NumberFormat('#,###', 'id_ID')
 // ==================== PDF GENERATOR ====================
 Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
   final pdf = pw.Document();
+  final totals = workOrders.toList();
+  final subtotal = totals.fold<double>(
+    0.0,
+    (sum, item) => sum + (item['subtotal_item'] as num? ?? 0).toDouble(),
+  );
   pw.TextStyle style = const pw.TextStyle(fontSize: 8);
   pdf.addPage(
     pw.MultiPage(
@@ -37,7 +41,14 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
             style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
           ),
         ),
-        pw.SizedBox(height: 20),
+        pw.Align(
+          alignment: pw.Alignment.centerRight,
+          child: pw.Text(
+            'No. WO/Tgl.WO :${workOrders.first['no_wo']}/${workOrders.first['tanggal']}',
+            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          ),
+        ),
+        pw.SizedBox(height: 10),
 
         // Info Kendaraan & Customer (dari WO pertama)
         if (workOrders.isNotEmpty) ...[
@@ -57,7 +68,7 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
                       pw.SizedBox(
                         width: 200,
                         child: pw.Text(
-                          workOrders.first['wo']['nora'] ?? '-',
+                          workOrders.first['nora'] ?? '-',
                           style: style,
                         ),
                       ),
@@ -73,7 +84,7 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
                       pw.SizedBox(
                         width: 200,
                         child: pw.Text(
-                          workOrders.first['wo']['plat_nomor'] ?? '-',
+                          workOrders.first['plat_nomor'] ?? '-',
                           style: style,
                         ),
                       ),
@@ -89,7 +100,7 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
                       pw.SizedBox(
                         width: 200,
                         child: pw.Text(
-                          '${workOrders.first['wo']['merk'] ?? ''} / ${workOrders.first['wo']['tipe'] ?? ''}',
+                          '${workOrders.first['merk'] ?? ''} / ${workOrders.first['tipe'] ?? ''}',
                           style: style,
                         ),
                       ),
@@ -105,7 +116,7 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
                       pw.SizedBox(
                         width: 200,
                         child: pw.Text(
-                          workOrders.first['wo']['tahun'] ?? '-',
+                          workOrders.first['tahun'] ?? '-',
                           style: style,
                         ),
                       ),
@@ -126,7 +137,7 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
                       pw.SizedBox(
                         width: 200,
                         child: pw.Text(
-                          workOrders.first['wo']['nama_customer'] ?? '-',
+                          workOrders.first['nama_customer'] ?? '-',
                           style: style,
                         ),
                       ),
@@ -142,7 +153,7 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
                       pw.SizedBox(
                         width: 200,
                         child: pw.Text(
-                          workOrders.first['wo']['alamat'] ?? '-',
+                          workOrders.first['alamat_customer'] ?? '-',
                           style: style,
                         ),
                       ),
@@ -158,7 +169,7 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
                       pw.SizedBox(
                         width: 200,
                         child: pw.Text(
-                          workOrders.first['wo']['no_hp'] ?? '-',
+                          workOrders.first['hp_customer'] ?? '-',
                           style: style,
                         ),
                       ),
@@ -174,7 +185,7 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
                       pw.SizedBox(
                         width: 200,
                         child: pw.Text(
-                          workOrders.first['wo']['kmTerakhir'] ?? '-',
+                          workOrders.first['kmTerakhir'].toString() ?? '-',
                           style: style,
                         ),
                       ),
@@ -184,20 +195,24 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
               ),
             ],
           ),
-          pw.SizedBox(height: 20),
-          pw.Divider(),
+          pw.SizedBox(height: 10),
+          pw.Divider(height: 1),
         ],
 
         // Daftar Work Order
         pw.Text(
-          'Daftar Work Order',
-          style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+          'KELUHAN :',
+          style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.Text(
+          '${workOrders.first['catatan']}',
+          style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.normal),
         ),
         pw.SizedBox(height: 10),
-
-        ...workOrders.map((data) {
-          final wo = data['wo'];
-          final items = data['items'] as List<Map<String, dynamic>>;
+        ...workOrders.where((v) => v['type_item'] == 'service').map((data) {
+          final items = workOrders
+              .where((v) => v['type_item'] == 'service')
+              .toList();
           final total = items.fold<double>(
             0.0,
             (sum, item) =>
@@ -208,17 +223,16 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                'No WO: ${wo['no_wo'] ?? '-'} | Tanggal: ${wo['tanggal'] ?? '-'}',
+                'JASA :',
                 style: pw.TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
-              pw.Text(
-                'Status: ${wo['status']?.toUpperCase() ?? '-'} | Mekanik: ${wo['nama_mekanik'] ?? '-'}',
-              ),
-              pw.SizedBox(height: 8),
-
+              // pw.Text(
+              //   'Status: ${wo['status']?.toUpperCase() ?? '-'} | Mekanik: ${wo['nama_mekanik'] ?? '-'}',
+              // ),
+              // pw.SizedBox(height: 8),
               pw.TableHelper.fromTextArray(
                 headers: ['No', 'Item', 'Qty', 'Harga', 'Subtotal'],
                 data: items.asMap().entries.map((e) {
@@ -253,20 +267,115 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Text(
-                  'TOTAL: Rp ${nf.format(total)}',
+                  'TOTAL JASA: Rp ${nf.format(total)}',
                   style: pw.TextStyle(
                     fontSize: 11,
                     fontWeight: pw.FontWeight.bold,
                   ),
                 ),
               ),
-              pw.SizedBox(height: 20),
-              pw.Divider(),
-              pw.SizedBox(height: 20),
+              pw.SizedBox(height: 10),
+              pw.Divider(height: 1),
+              pw.SizedBox(height: 10),
             ],
           );
         }),
+        ...workOrders.where((v) => v['type_item'] == 'part').map((data) {
+          final items = workOrders
+              .where((v) => v['type_item'] == 'part')
+              .toList();
+          final total = items.fold<double>(
+            0.0,
+            (sum, item) =>
+                sum + (item['subtotal_item'] as num? ?? 0).toDouble(),
+          );
 
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'PART :',
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              // pw.Text(
+              //   'Status: ${wo['status']?.toUpperCase() ?? '-'} | Mekanik: ${wo['nama_mekanik'] ?? '-'}',
+              // ),
+              // pw.SizedBox(height: 8),
+              pw.TableHelper.fromTextArray(
+                headers: ['No', 'Item', 'Qty', 'Harga', 'Subtotal'],
+                data: items.asMap().entries.map((e) {
+                  final i = e.key;
+                  final item = e.value;
+                  return [
+                    '${i + 1}',
+                    item['nama_item'] ?? '-',
+                    '${item['qty_item'] ?? 1}x',
+                    'Rp ${nf.format((item['harga_item'] as num?)?.toDouble() ?? 0)}',
+                    'Rp ${nf.format((item['subtotal_item'] as num?)?.toDouble() ?? 0)}',
+                  ];
+                }).toList(),
+                border: null,
+                headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
+                headerStyle: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+                cellStyle: const pw.TextStyle(fontSize: 9),
+                cellHeight: 25,
+                cellAlignments: {
+                  0: pw.Alignment.center,
+                  1: pw.Alignment.centerLeft,
+                  2: pw.Alignment.center,
+                  3: pw.Alignment.centerRight,
+                  4: pw.Alignment.centerRight,
+                },
+              ),
+
+              pw.SizedBox(height: 8),
+              pw.Align(
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text(
+                  'TOTAL PART: Rp ${nf.format(total)}',
+                  style: pw.TextStyle(
+                    fontSize: 11,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Divider(height: 1),
+              pw.SizedBox(height: 10),
+            ],
+          );
+        }),
+        pw.Align(
+          alignment: pw.Alignment.centerRight,
+          child: pw.Text(
+            'SUBTOTAL : Rp ${nf.format(subtotal)}',
+            style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+          ),
+        ),
+        pw.SizedBox(height: 10),
+        pw.Divider(height: 1),
+        pw.SizedBox(height: 20),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+          children: [pw.Text("Pelanggan"), pw.Text("Service Advisor")],
+        ),
+        pw.SizedBox(height: 30),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+          children: [
+            pw.Text(
+              '( ${workOrders.first['nama_customer'].toString().trim()} )',
+            ),
+            pw.Text("(                             )"),
+          ],
+        ),
+        pw.SizedBox(height: 30),
         pw.Footer(
           trailing: pw.Text(
             'Dicetak pada: ${DateFormat('dd MMM yyyy HH:mm').format(DateTime.now())}',
@@ -279,6 +388,6 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
 
   await Printing.layoutPdf(
     onLayout: (PdfPageFormat format) async => pdf.save(),
-    name: 'PK ${workOrders.first['wo']['no_wo']}.pdf',
+    name: 'PK ${workOrders.first['no_wo']}.pdf',
   );
 }

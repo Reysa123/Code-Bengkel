@@ -6,6 +6,7 @@ import 'package:bengkel/presentation/screens/edit_work_order_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_assignment_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_detail_screen.dart';
+import 'package:bengkel/utils/printpk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -93,7 +94,12 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
   }
 
   // ====================== PRINT ======================
-  Future<void> _printWorkOrder(WorkOrder wo) async {
+  Future<void> _printWorkOrder(String woId) async {
+    await WorkOrderRepository().getAllByWoId(woId).then((v) async {
+      if (v.isNotEmpty) {
+        await generatePKPDF(v);
+      }
+    });
     // Catatan: Untuk print lengkap dengan item, fetch wo_items dulu (bisa dikembangkan)
     // Untuk sekarang print header + total
     ScaffoldMessenger.of(
@@ -108,9 +114,9 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
     if (newStatus == 'paid') paid = wo.total;
 
     await _repository.updateStatus(wo.id!, newStatus, paid);
-     if (!mounted) return;
+    if (!mounted) return;
     await context.read<WorkOrderCubit>().loadAll();
- if (!mounted) return;
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Status diubah menjadi ${newStatus.toUpperCase()}'),
@@ -385,7 +391,8 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                             Icons.print,
                                             color: Colors.blue,
                                           ),
-                                          onPressed: () => _printWorkOrder(wo),
+                                          onPressed: () =>
+                                              _printWorkOrder(wo.noWo),
                                         ),
                                         PopupMenuButton<String>(
                                           icon: const Icon(Icons.more_vert),
@@ -457,7 +464,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               var s =
                                                   await WorkOrderRepository()
                                                       .getAllByWoId(wo.noWo);
-                                                      
+
                                               for (var e in s) {
                                                 if (e['type'] == 'part') {
                                                   d.add(e['status_item']);
@@ -465,7 +472,6 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               }
                                               if (d.contains('pending') ||
                                                   d.contains('on_progress')) {
-                                                    
                                                 ScaffoldMessenger.of(
                                                   context,
                                                 ).showSnackBar(
@@ -479,7 +485,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                                 );
                                                 return;
                                               }
-                                               
+
                                               showDialog(
                                                 context: context,
                                                 builder: (context) => AlertDialog(

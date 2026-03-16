@@ -100,6 +100,7 @@ class WorkOrderRepository {
       v.tipe,
       v.tahun,
       v.warna,
+      v.nora,
       v.km_terakhir AS kmTerakhir,
       CASE 
         WHEN wi.type = 'service' THEN s.nama
@@ -123,6 +124,8 @@ class WorkOrderRepository {
       wi.subtotal AS subtotal_item,
       wi.status AS status_item,
       c.nama AS nama_customer,
+      c.alamat AS alamat_customer,
+      c.no_hp AS hp_customer,
       m.nama AS nama_mekanik
     FROM work_orders wo
     LEFT JOIN wo_items wi ON wo.no_wo = wi.wo_id
