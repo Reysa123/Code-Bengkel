@@ -164,6 +164,25 @@ class WorkOrderRepository {
     return await db.insert('work_orders', wo.toMap());
   }
 
+  Future<void> insertItem(List<WoItem> items) async {
+    final db = await dbHelper.database;
+    for (var item in items) {
+      // item.woId = woId;
+      try {
+        await db.insert('wo_items', {
+          'wo_id': item.woId,
+          'type': item.type,
+          'item_id': item.itemId,
+          'qty': item.qty,
+          'harga': item.harga,
+          'subtotal': item.subtotal,
+        });
+      } catch (e) {
+        throw Exception('Error inserting item: $e');
+      }
+    }
+  }
+
   Future<void> insertWithItems(WorkOrder wo, List<WoItem> items) async {
     final db = await dbHelper.database;
     await db.insert('work_orders', wo.toMap());

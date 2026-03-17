@@ -98,9 +98,8 @@ class DatabaseHelper {
     )''');
 
     await db.execute('''CREATE TABLE external_orders (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      no_order TEXT, tanggal TEXT, wo_id INTEGER,
-      deskripsi TEXT, biaya REAL, vendor TEXT,
+      id INTEGER PRIMARY KEY AUTOINCREMENT, tanggal TEXT, wo_id INTEGER, type TEXT,
+      deskripsi TEXT, beli REAL, jual REAL, qty REAL, vendor TEXT,
       FOREIGN KEY (wo_id) REFERENCES work_orders(id)
     )''');
 

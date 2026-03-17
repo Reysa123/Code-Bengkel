@@ -2,6 +2,7 @@
 // 1. lib/main.dart
 // ================================================
 import 'package:bengkel/presentation/blocs/customer_cubit.dart';
+import 'package:bengkel/presentation/blocs/external_order_cubit.dart';
 import 'package:bengkel/presentation/blocs/purchase_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => WorkOrderCubit()..loadAll()),
         BlocProvider(create: (_) => CustomerCubit()..loadAll()),
         BlocProvider(create: (_) => PurchaseCubit()..loadAllPurchases()),
+        BlocProvider(create: (_) => ExternalOrderBloc()),
       ],
       child: MaterialApp(
         title: 'Bengkel Manager Pro',
