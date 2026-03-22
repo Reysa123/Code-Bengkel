@@ -690,7 +690,63 @@ class WorkOrderRepository {
     //   [woId],
     // );
   }
+Future<bool> undoFinishWorkOrder({
+  required String woId,
+  required String alasan,
+  required String dibuatOleh,
+}) async {
+  final db = await dbHelper.database;
 
+  try {
+    await db.transaction((txn) async {
+      // 1. Cek status
+      final wo = await txn.query(
+        'work_orders',
+        where: 'no_wo = ?',
+        whereArgs: [woId],
+        limit: 1,
+      );
+
+      if (wo.isEmpty || wo.first['status'] != 'finished') {
+        throw Exception('WO tidak ditemukan atau bukan status finished');
+      }
+
+      // 2. Kembalikan status (sesuaikan dengan flow Anda)
+      await txn.update(
+        'work_orders',
+        {'status': 'completed', 'paid': 0.0}, // atau 'in_progress', 'completed', dll
+        where: 'no_wo = ?',
+        whereArgs: [woId],
+      );
+
+      // 3. Hapus semua jurnal dengan no_referensi = BIL-$woId
+      await txn.delete(
+        'jurnal_umum',
+        where: 'no_referensi = ?',
+        whereArgs: ['BIL-$woId'],
+      );
+
+      // 4. Catat log (opsional tapi sangat disarankan)
+      await txn.insert('activity_logs', {
+        'created_at': DateTime.now().toIso8601String(),
+        'action': 'UNDO_FINISH_WORK_ORDER',
+        'entity_type': 'work_order',
+        'entity_id': woId.toString(),
+        'description': 'Penyelesaian WO $woId dibatalkan. Alasan: $alasan',
+        'created_by': dibuatOleh,
+        'old_value': 'finished',
+        'new_value': 'completed',
+        'ip_address': '-',
+        'user_agent': '-',
+      });
+    });
+
+    return true;
+  } catch (e) {
+    debugPrint('Gagal undo finish WO: $e');
+    return false;
+  }
+}
   // Ambil data lengkap untuk kwitansi (sudah include diskon)
   Future<Map<String, dynamic>> getWorkOrderForReceipt(String woId) async {
     final db = await dbHelper.database;

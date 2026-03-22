@@ -2,6 +2,7 @@
 // 2. lib/presentation/screens/home_screen.dart
 // ================================================
 import 'package:bengkel/core/constants/app_constants.dart';
+import 'package:bengkel/presentation/screens/batalbilling.dart';
 import 'package:bengkel/presentation/screens/batalproses.dart';
 import 'package:bengkel/presentation/screens/kasir_screen.dart';
 import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
@@ -220,11 +221,21 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.analytics),
-              title: const Text('Pembatalan'),
+              title: const Text('Pembatalan Pembayaran Kasir'),
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => const CancelPaymentSearchPage(),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.analytics),
+              title: const Text('Pembatalan Billing'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const UndoFinishWorkOrderSearchPage(),
                 ),
               ),
             ),
