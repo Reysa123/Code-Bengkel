@@ -112,7 +112,7 @@ class _UndoFinishWorkOrderSearchPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Batalkan Penyelesaian WO')),
+      appBar: AppBar(title: const Text('Pembatalan Billing')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -235,7 +235,7 @@ class _UndoFinishWorkOrderConfirmPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Konfirmasi Batal Selesai')),
+      appBar: AppBar(title: const Text('Konfirmasi Batal Billing')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
