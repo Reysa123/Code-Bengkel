@@ -132,6 +132,22 @@ CREATE TABLE jurnal_umum (
       created_at      TEXT DEFAULT (datetime('now', 'localtime'))
     )
 ''');
+    // Tabel activity_logs (baru)
+    await db.execute('''
+      CREATE TABLE activity_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at TEXT NOT NULL,
+        action TEXT NOT NULL,
+        entity_type TEXT NOT NULL,
+        entity_id TEXT NOT NULL,
+        description TEXT,
+        created_by TEXT NOT NULL,
+        old_value TEXT,
+        new_value TEXT,
+        ip_address TEXT,
+        user_agent TEXT
+      )
+    ''');
     await _seedInitialAccounts(db);
   }
 

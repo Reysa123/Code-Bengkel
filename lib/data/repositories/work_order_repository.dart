@@ -476,7 +476,7 @@ class WorkOrderRepository {
     await db.insert('jurnal_umum', {
       'created_at': tgls,
       'tanggal': tgl,
-      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'no_referensi': 'PAY-$woId', // Nomor invoice penjualan
       'keterangan': 'Biaya Service Kendaraan $nacus',
       'kode_akun': '101',
       'nama_akun': 'Kas',
@@ -485,6 +485,91 @@ class WorkOrderRepository {
       'id_transaksi': woId,
       'dibuat_oleh': 'admin',
     });
+  }
+
+  /// Membatalkan pembayaran work order
+  /// Mengembalikan status work order & menghapus jurnal pembayaran terkait
+  Future<bool> cancelPayment({
+    required String woId,
+    required String alasan,
+    required String? dibuatOleh,
+  }) async {
+    final db = await dbHelper.database;
+
+    try {
+      await db.transaction((txn) async {
+        // 1. Cek apakah work order memang sudah paid
+        final woResult = await txn.query(
+          'work_orders',
+          where: 'no_wo = ?',
+          whereArgs: [woId],
+          limit: 1,
+        );
+
+        if (woResult.isEmpty) {
+          throw Exception('Work order tidak ditemukan');
+        }
+
+        final wo = woResult.first;
+        final currentStatus = wo['status'] as String?;
+
+        if (currentStatus != 'paid') {
+          throw Exception('Work order belum dibayar atau sudah dibatalkan');
+        }
+
+        // 2. Kembalikan status work order (misal ke 'completed' atau 'approved')
+        await txn.update(
+          'work_orders',
+          {
+            'status':
+                'finished', // atau 'approved', 'in_progress' sesuai flow bisnis Anda
+            'paid': 0.0,
+          },
+          where: 'no_wo = ?',
+          whereArgs: [woId],
+        );
+
+        // 3. Hapus jurnal yang dibuat saat pembayaran
+        // Biasanya ada 2 entri: Piutang Usaha (kredit) & Kas (debit)
+        await txn.delete(
+          'jurnal_umum',
+          where: 'id_transaksi = ? AND no_referensi LIKE ?',
+          whereArgs: [woId, 'PAY-%'],
+        );
+
+        // Opsional: catat log pembatalan
+        await txn.insert('activity_logs', {
+          'created_at': DateTime.now().toIso8601String(),
+          'action': 'CANCEL_PAYMENT',
+          'entity_type': 'work_order',
+          'entity_id': woId,
+          'description':
+              'Pembayaran work order $woId dibatalkan, alasan : $alasan',
+          'created_by': dibuatOleh,
+          'old_value': woResult.first['paid'],
+          'new_value': '0.0',
+          'ip_address': "-",
+          'user_agent': "-",
+        });
+      });
+
+      return true;
+    } catch (e) {
+      debugPrint('Gagal membatalkan pembayaran: $e');
+      return false;
+    }
+  }
+
+  /// Optional: hanya mengembalikan status tanpa hapus jurnal (soft undo)
+  Future<bool> revertToUnpaid(String woId) async {
+    final db = await dbHelper.database;
+    final count = await db.update(
+      'work_orders',
+      {'status': 'completed', 'paid': 0.0},
+      where: 'no_wo = ?',
+      whereArgs: [woId],
+    );
+    return count > 0;
   }
 
   // Finish WO + cetak kwitansi

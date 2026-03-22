@@ -2,6 +2,7 @@
 // 2. lib/presentation/screens/home_screen.dart
 // ================================================
 import 'package:bengkel/core/constants/app_constants.dart';
+import 'package:bengkel/presentation/screens/batalproses.dart';
 import 'package:bengkel/presentation/screens/kasir_screen.dart';
 import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
 import 'package:bengkel/presentation/screens/neraca_jurnal_screen.dart';
@@ -217,6 +218,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 MaterialPageRoute(builder: (_) => const NeracaJurnalScreen()),
               ),
             ),
+            ListTile(
+              leading: const Icon(Icons.analytics),
+              title: const Text('Pembatalan'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CancelPaymentSearchPage(),
+                ),
+              ),
+            ),
+            //CancelPaymentSearchPage
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Pengaturan'),
