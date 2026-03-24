@@ -1,5 +1,5 @@
+import 'package:bengkel/utils/number_format.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 
 class ThousandsSeparatorInputFormatter extends TextInputFormatter {
   @override
@@ -19,8 +19,7 @@ class ThousandsSeparatorInputFormatter extends TextInputFormatter {
     if (doubleValue == null) return oldValue;
 
     // 3. Format ulang ke ribuan (Indonesia)
-    final formatter = NumberFormat('#,###');
-    String newText = formatter.format(doubleValue);
+    String newText = nf.format(doubleValue);
 
     // 4. Hitung posisi kursor baru yang tepat
     // Rumus: Posisi kursor baru = (Posisi kursor lama - jumlah titik lama) + jumlah titik baru

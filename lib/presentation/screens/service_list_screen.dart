@@ -1,10 +1,10 @@
 // lib/presentation/screens/service_list_screen.dart
 
+import 'package:bengkel/utils/number_format.dart';
 import 'package:bengkel/utils/ribuan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 import '../../data/models/service.dart';
 import '../../presentation/blocs/service_cubit.dart';
@@ -65,7 +65,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
     final isEdit = service != null;
     final namaController = TextEditingController(text: service?.nama);
     final hargaController = TextEditingController(
-      text: service != null ? NumberFormat('#,###').format(service.harga) : '',
+      text: service != null ? nf.format(service.harga) : '',
     );
     final deskripsiController = TextEditingController(text: service?.deskripsi);
     String selectedKategori =
@@ -174,7 +174,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                           return 'Harga tidak boleh kosong';
                         }
                         final harga = double.tryParse(
-                          value.replaceAll(',', ''),
+                          value.replaceAll('.', ''),
                         );
                         if (harga == null || harga <= 0) {
                           return 'Harga harus berupa angka positif';
@@ -213,7 +213,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                           if (_formKey.currentState!.validate()) {
                             final double harga =
                                 double.tryParse(
-                                  hargaController.text.replaceAll(',', ''),
+                                  hargaController.text.replaceAll('.', ''),
                                 ) ??
                                 0;
                             final newService = Service(
@@ -372,7 +372,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                             children: [
                               const SizedBox(height: 4),
                               Text(
-                                'Rp ${NumberFormat('#,###').format(service.harga)}',
+                                'Rp ${nf.format(service.harga)}',
                                 style: TextStyle(
                                   color: Colors.blue.shade700,
                                   fontWeight: FontWeight.w600,

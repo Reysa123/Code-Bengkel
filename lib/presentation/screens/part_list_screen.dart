@@ -91,8 +91,10 @@ class _PartListScreenState extends State<PartListScreen> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: stokController,
-                    readOnly:
-                        isEdit, // Biasanya stok tidak diubah langsung di edit part (via transaksi)
+                    enabled: isEdit,
+                    readOnly: isEdit
+                        ? false
+                        : true, // Biasanya stok tidak diubah langsung di edit part (via transaksi)
                     decoration: const InputDecoration(
                       labelText: 'Stok Awal',
                       border: OutlineInputBorder(),
@@ -134,10 +136,10 @@ class _PartListScreenState extends State<PartListScreen> {
 
                       // Validasi Logika: Harga Jual vs Harga Beli
                       final hJual =
-                          double.tryParse(value.replaceAll(',', '')) ?? 0;
+                          double.tryParse(value.replaceAll('.', '')) ?? 0;
                       final hBeli =
                           double.tryParse(
-                            hargaBeliController.text.replaceAll(',', ''),
+                            hargaBeliController.text.replaceAll('.', ''),
                           ) ??
                           0;
 
@@ -171,13 +173,13 @@ class _PartListScreenState extends State<PartListScreen> {
 
                 final hargaBeli =
                     double.tryParse(
-                      hargaBeliController.text.replaceAll(',', ''),
+                      hargaBeliController.text.replaceAll('.', ''),
                     ) ??
                     0;
 
                 final hargaJual =
                     double.tryParse(
-                      hargaJualController.text.replaceAll(',', ''),
+                      hargaJualController.text.replaceAll('.', ''),
                     ) ??
                     0;
 

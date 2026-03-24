@@ -20,6 +20,8 @@ class WorkOrder extends Equatable {
   final String? namaMekanik;
   final String? catatan;
   final int? kmTerakhir;
+  final String? type;
+  final double? qty;
 
   const WorkOrder({
     this.id,
@@ -39,6 +41,8 @@ class WorkOrder extends Equatable {
     this.namaMekanik,
     this.catatan,
     this.kmTerakhir,
+    this.type,
+    this.qty,
   });
 
   Map<String, dynamic> toMap() => {
@@ -72,6 +76,8 @@ class WorkOrder extends Equatable {
     namaMekanik: map['nama_mekanik'],
     catatan: map['catatan'],
     kmTerakhir: map['km_terakhir'],
+    type: map['type_item'],
+    qty: map['qty_item'],
   );
 
   @override

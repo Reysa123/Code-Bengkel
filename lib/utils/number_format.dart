@@ -10,8 +10,8 @@ String formatCurrencyWithSymbol(double value) {
   return 'Rp ${nf.format(value)}';
 }
 
-String cleanNumber(String? text) {
-  if (text == null || text.isEmpty) return '0';
+double getNumber(String? text) {
+  if (text == null || text.isEmpty) return 0;
   // Hapus semua karakter non-digit kecuali tanda minus dan titik desimal
-  return text.replaceAll(RegExp(r'[^0-9.]'), '');
+  return double.tryParse(text.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
 }

@@ -6,6 +6,7 @@ import 'package:bengkel/presentation/screens/edit_work_order_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_assignment_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_detail_screen.dart';
+import 'package:bengkel/utils/number_format.dart';
 import 'package:bengkel/utils/printpk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -377,7 +378,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Rp ${NumberFormat('#,###').format(wo.total)}',
+                                      'Rp ${nf.format(wo.total)}',
                                       style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -573,10 +574,10 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                             }
                                           },
                                           itemBuilder: (context) => [
-                                            const PopupMenuItem(
-                                              value: 'status',
-                                              child: Text('Ubah Status'),
-                                            ),
+                                            // const PopupMenuItem(
+                                            //   value: 'status',
+                                            //   child: Text('Ubah Status'),
+                                            // ),
                                             const PopupMenuItem(
                                               value: 'maintancewo',
                                               child: Text('Maintenance WO'),
@@ -645,7 +646,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
               title: const Text('Pending'),
               leading: const Icon(Icons.hourglass_empty, color: Colors.orange),
               onTap: () {
-                _updateStatus(wo, 'pending');
+                // _updateStatus(wo, 'pending');
                 Navigator.pop(context);
               },
             ),
@@ -653,7 +654,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
               title: const Text('Sedang Dikerjakan'),
               leading: const Icon(Icons.build, color: Colors.blue),
               onTap: () {
-                _updateStatus(wo, 'on_progress');
+                // _updateStatus(wo, 'on_progress');
                 Navigator.pop(context);
               },
             ),
@@ -661,7 +662,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
               title: const Text('Selesai'),
               leading: const Icon(Icons.check_circle, color: Colors.green),
               onTap: () {
-                _updateStatus(wo, 'completed');
+                // _updateStatus(wo, 'completed');
                 Navigator.pop(context);
               },
             ),
@@ -669,7 +670,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
               title: const Text('Lunas'),
               leading: const Icon(Icons.paid, color: Colors.purple),
               onTap: () {
-                _updateStatus(wo, 'paid');
+                //  _updateStatus(wo, 'paid');
                 Navigator.pop(context);
               },
             ),

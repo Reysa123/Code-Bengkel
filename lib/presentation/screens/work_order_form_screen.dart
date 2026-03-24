@@ -1,6 +1,7 @@
 // lib/presentation/screens/work_order_form_screen.dart
 
 import 'package:bengkel/data/repositories/work_order_repository.dart';
+import 'package:bengkel/utils/number_format.dart';
 import 'package:bengkel/utils/printpk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,7 +31,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TabController _tabController;
-  final NumberFormat nf = NumberFormat('#,###');
   List<Service> _filteredServices = [];
   List<Part> _filteredParts = [];
   int _kmTerakhir = 0;
@@ -220,9 +220,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
             backgroundColor: Colors.green,
           ),
         );
-        WorkOrderRepository()
-            .getAllByWoId(_noWoController.text)
-            .then((v) => generatePKPDF(v));
+        _printWorkOrder(_noWoController.text);
         Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -236,12 +234,27 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
         kmFocusNode.requestFocus();
       }
     } else {
+      _tabController.animateTo(1);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Lengkapi data & minimal 1 item pekerjaan'),
         ),
       );
     }
+  }
+
+  Future<void> _printWorkOrder(String woId) async {
+    await WorkOrderRepository().getAllByWoId(woId).then((v) async {
+      if (v.isNotEmpty) {
+        await generatePKPDF(v);
+      }
+    });
+    // Catatan: Untuk print lengkap dengan item, fetch wo_items dulu (bisa dikembangkan)
+    // Untuk sekarang print header + total
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Mencetak Work Order...')));
+    // await printBilling(wo, []); // kosong dulu, nanti bisa di-improve
   }
 
   void _loadFilteredItems() {
@@ -784,7 +797,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
 //         final service = _filteredServices[index];
 //         return ListTile(
 //           title: Text(service.nama),
-//           subtitle: Text('Rp ${NumberFormat('#,###').format(service.harga)}'),
+//           subtitle: Text('Rp ${nf.format(service.harga)}'),
 //           trailing: const Icon(Icons.add_circle, color: Colors.green),
 //           onTap: () {
 //             setState(() {
@@ -815,7 +828,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen>
 //         return ListTile(
 //           title: Text('${part.kode} - ${part.nama}'),
 //           subtitle: Text(
-//             'Stok: ${part.stok} | Rp ${NumberFormat('#,###').format(part.hargaJual)}',
+//             'Stok: ${part.stok} | Rp ${nf.format(part.hargaJual)}',
 //           ),
 //           trailing: const Icon(Icons.add_circle, color: Colors.blue),
 //           onTap: () {

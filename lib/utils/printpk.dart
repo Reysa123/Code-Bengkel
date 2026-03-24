@@ -185,7 +185,7 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
                       pw.SizedBox(
                         width: 200,
                         child: pw.Text(
-                          workOrders.first['kmTerakhir'].toString() ?? '-',
+                          workOrders.first['kmTerakhir'].toString(),
                           style: style,
                         ),
                       ),

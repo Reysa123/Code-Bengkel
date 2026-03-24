@@ -83,7 +83,7 @@ class _KasirScreenState extends State<KasirScreen> {
   }
 
   void _updatePaidAmount(String value) {
-    final cleaned = value.replaceAll(',', '');
+    final cleaned = value.replaceAll('.', '');
     final amount = double.tryParse(cleaned) ?? 0.0;
     setState(() {
       _paidAmount = amount;
@@ -118,7 +118,7 @@ class _KasirScreenState extends State<KasirScreen> {
         nacus,
         tglWo,
       );
- if (!mounted) return;
+      if (!mounted) return;
       // 2. Refresh list WO
       context.read<WorkOrderCubit>().loadAll();
 

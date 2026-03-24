@@ -34,7 +34,7 @@ class Vehicle extends Equatable {
     'tipe': tipe,
     'tahun': tahun,
     'warna': warna,
-    'km_terakhir': kmTerakhir,
+    'km_terakhir': kmTerakhir ?? 0,
   };
 
   factory Vehicle.fromMap(Map<String, dynamic> map) => Vehicle(

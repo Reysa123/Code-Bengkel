@@ -33,86 +33,212 @@ class _MechanicListScreenState extends State<MechanicListScreen> {
   // =====================================================
   // Dialog Tambah / Edit Mekanik
   // =====================================================
+  // ...existing code...
   void _showMechanicForm({Mechanic? mechanic}) {
     final isEdit = mechanic != null;
+    final formKey = GlobalKey<FormState>();
 
     final namaController = TextEditingController(text: mechanic?.nama);
     final noHpController = TextEditingController(text: mechanic?.noHp);
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isEdit ? 'Edit Mekanik' : 'Tambah Mekanik Baru'),
-        content: SingleChildScrollView(
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 10,
+        backgroundColor: Colors.white,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          constraints: const BoxConstraints(maxWidth: 400),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: namaController,
-                decoration: const InputDecoration(
-                  labelText: 'Nama Lengkap *',
-                  hintText: 'Contoh: Wayan Susila',
-                ),
-                textCapitalization: TextCapitalization.words,
+              // Header dengan ikon
+              Row(
+                children: [
+                  Icon(
+                    isEdit ? Icons.edit : Icons.person_add,
+                    color: AppConstants.primaryColor,
+                    size: 32,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      isEdit ? 'Edit Mekanik' : 'Tambah Mekanik Baru',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: noHpController,
-                decoration: const InputDecoration(
-                  labelText: 'Nomor HP / WhatsApp',
-                  hintText: 'Contoh: 081234567890',
-                  prefixText: '+62 ',
+              const SizedBox(height: 20),
+              Form(
+                key: formKey,
+                child: Column(
+                  children: [
+                    // Field Nama
+                    TextFormField(
+                      controller: namaController,
+                      decoration: InputDecoration(
+                        labelText: 'Nama Lengkap *',
+                        hintText: 'Contoh: Wayan Susila',
+                        prefixIcon: const Icon(
+                          Icons.person,
+                          color: Colors.blue,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.blue),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Colors.blue,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                      ),
+                      textCapitalization: TextCapitalization.words,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Nama mekanik wajib diisi';
+                        }
+                        if (value.trim().length < 3) {
+                          return 'Nama terlalu pendek';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Field Nomor HP
+                    TextFormField(
+                      controller: noHpController,
+                      decoration: InputDecoration(
+                        labelText: 'Nomor HP / WhatsApp',
+                        hintText: 'Contoh: 081234567890',
+                        prefixText: '+62 ',
+                        prefixIcon: const Icon(
+                          Icons.phone,
+                          color: Colors.green,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.green),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Colors.green,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        final trimmed = value?.trim() ?? '';
+                        if (trimmed.isEmpty) return null; // optional
+                        final numeric = RegExp(r'^\d+$');
+                        if (!numeric.hasMatch(trimmed)) {
+                          return 'Masukkan hanya angka';
+                        }
+                        if (trimmed.length < 9 || trimmed.length > 14) {
+                          return 'Nomor HP tidak valid';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
                 ),
-                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 24),
+              // Tombol Aksi
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Batal',
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (!(formKey.currentState?.validate() ?? false)) {
+                        return;
+                      }
+
+                      final newMechanic = Mechanic(
+                        id: mechanic?.id,
+                        nama: namaController.text.trim(),
+                        noHp: noHpController.text.trim().isEmpty
+                            ? '0'
+                            : noHpController.text.trim(),
+                      );
+
+                      if (isEdit) {
+                        context.read<MechanicCubit>().updateMechanic(
+                          newMechanic,
+                        );
+                      } else {
+                        context.read<MechanicCubit>().addMechanic(newMechanic);
+                      }
+
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Data mekanik berhasil disimpan'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppConstants.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 4,
+                    ),
+                    child: Text(
+                      isEdit ? 'Simpan Perubahan' : 'Tambah Mekanik',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (namaController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Nama mekanik wajib diisi')),
-                );
-                return;
-              }
-
-              final newMechanic = Mechanic(
-                id: mechanic?.id,
-                nama: namaController.text.trim(),
-                noHp: noHpController.text.trim().isEmpty
-                    ? "0"
-                    : noHpController.text.trim(),
-              );
-
-              if (isEdit) {
-                // Jika sudah punya method update di cubit, panggil di sini
-                // Untuk sementara pakai add (kamu bisa ganti nanti)
-                context.read<MechanicCubit>().updateMechanic(newMechanic);
-              } else {
-                context.read<MechanicCubit>().addMechanic(newMechanic);
-              }
-
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Data mekanik berhasil disimpan'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            child: Text(isEdit ? 'Simpan Perubahan' : 'Tambah Mekanik'),
-          ),
-        ],
       ),
     );
   }
 
+  // ...existing code...
   // =====================================================
   // Konfirmasi Hapus
   // =====================================================
@@ -348,6 +474,7 @@ class _MechanicListScreenState extends State<MechanicListScreen> {
         icon: const Icon(Icons.person_add),
         label: const Text('Tambah Mekanik'),
         backgroundColor: AppConstants.primaryColor,
+        foregroundColor: Colors.white,
       ),
     );
   }

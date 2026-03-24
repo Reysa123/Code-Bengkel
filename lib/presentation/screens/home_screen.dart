@@ -12,6 +12,7 @@ import 'package:bengkel/presentation/screens/purchse_form_screen.dart';
 import 'package:bengkel/presentation/screens/supplier_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
 import 'package:bengkel/presentation/screens/work_order_search_screen.dart';
+import 'package:bengkel/utils/number_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -20,10 +21,6 @@ import '../blocs/work_order_cubit.dart';
 import 'work_order_list_screen.dart';
 import 'vehicle_list_screen.dart';
 import 'service_list_screen.dart';
-// import 'part_list_screen.dart';
-// import 'mechanic_list_screen.dart';
-// import 'supplier_list_screen.dart';
-// import 'purchase_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,29 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
     const WorkOrderSearchScreen(),
     const VehicleListScreen(), // Data Kendaraan
   ];
-
-  void _onDrawerItemTapped(int index) {
-    Navigator.pop(context); // tutup drawer
-    if (index == 99) {
-      // 99 = Buat Work Order Baru
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const VehicleSearchScreen()),
-      );
-    } else if (index == 1) {
-      // 100 = Kasir
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const WorkOrderListScreen()),
-      );
-    } else if (index == 2) {
-      // 2 = Maintenance Work Order
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const WorkOrderSearchScreen()),
-      );
-    }
-  }
 
   DateTimeRange _currentMonthRange() {
     final now = DateTime.now();
@@ -178,17 +152,28 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.add_circle, color: Colors.green),
               title: const Text('Buat Work Order Baru'),
-              onTap: () => _onDrawerItemTapped(99),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const VehicleSearchScreen()),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.list_alt),
               title: const Text('Daftar Work Order'),
-              onTap: () => _onDrawerItemTapped(1),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const WorkOrderListScreen()),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.surround_sound_rounded),
               title: const Text('Maintenance Work Order'),
-              onTap: () => _onDrawerItemTapped(2),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const WorkOrderSearchScreen(),
+                ),
+              ),
             ),
 
             ListTile(
@@ -273,6 +258,9 @@ class DashboardPage extends StatelessWidget {
               0,
               (sum, wo) => sum + wo.total,
             );
+            final part = state.workOrders
+                .where((v) => v.type == 'part')
+                .fold<double>(0, (sum, wo) => sum + wo.qty!);
             final totalKendaraanService = state.workOrders
                 .where((wo) => wo.platNomor != null && wo.platNomor!.isNotEmpty)
                 .map((wo) => wo.platNomor!)
@@ -306,7 +294,7 @@ class DashboardPage extends StatelessWidget {
                     const SizedBox(width: 12),
                     _buildStatCard(
                       'Total Pendapatan Bulan Ini',
-                      'Rp ${NumberFormat('#,###').format(totalPendapatan)}',
+                      'Rp ${nf.format(totalPendapatan)}',
                       Icons.attach_money,
                       Colors.green,
                     ),
@@ -317,7 +305,7 @@ class DashboardPage extends StatelessWidget {
                   children: [
                     _buildStatCard(
                       'Part Terjual Bulan Ini',
-                      '28',
+                      part.toStringAsFixed(0),
                       Icons.inventory_2,
                       Colors.orange,
                     ),
@@ -337,25 +325,34 @@ class DashboardPage extends StatelessWidget {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
-
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: recent.length,
-                  itemBuilder: (context, i) {
-                    final wo = recent[i];
-                    return Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.receipt),
-                        title: Text('WO-${wo.noWo}'),
-                        subtitle: Text('${wo.platNomor ?? "—"} • ${wo.status}'),
-                        trailing: Text(
-                          'Rp ${NumberFormat('#,###').format(wo.total)}',
+                recent.isEmpty
+                    ? Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.car_repair),
+                          title: Text('Tidak ada Work Order yang ditemukan'),
+                          subtitle: Text('WO kosong'),
+                          trailing: Text('Rp 0'),
                         ),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: recent.length,
+                        itemBuilder: (context, i) {
+                          final wo = recent[i];
+
+                          return Card(
+                            child: ListTile(
+                              leading: const Icon(Icons.receipt),
+                              title: Text('WO-${wo.noWo}'),
+                              subtitle: Text(
+                                '${wo.platNomor ?? "—"} • ${wo.status}',
+                              ),
+                              trailing: Text('Rp ${nf.format(wo.total)}'),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ],
             );
           }

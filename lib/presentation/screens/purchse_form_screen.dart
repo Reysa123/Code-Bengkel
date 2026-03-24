@@ -1,4 +1,5 @@
 import 'package:bengkel/presentation/blocs/suppliers_cubit.dart';
+import 'package:bengkel/utils/number_format.dart';
 import 'package:bengkel/utils/print_purchase.dart';
 import 'package:bengkel/utils/ribuan.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,6 @@ class _PurchaseFormScreenState extends State<PurchaseFormScreen> {
   Supplier? _selectedSupplier;
   final List<PurchaseItem> _items = [];
   double _grandTotal = 0.0;
-  NumberFormat nf = NumberFormat('#,###');
   late String _noPurchase;
   DateTime _tanggal = DateTime.now();
 
@@ -275,9 +275,9 @@ class _PurchaseFormScreenState extends State<PurchaseFormScreen> {
               }
 
               final qty =
-                  int.tryParse(qtyController.text.replaceAll(',', '')) ?? 1;
+                  int.tryParse(qtyController.text.replaceAll('.', '')) ?? 1;
               final harga =
-                  double.tryParse(hargaController.text.replaceAll(',', '')) ??
+                  double.tryParse(hargaController.text.replaceAll('.', '')) ??
                   0.0;
               final subtotal = qty * harga;
 
