@@ -4,6 +4,7 @@
 import 'package:bengkel/core/constants/app_constants.dart';
 import 'package:bengkel/presentation/screens/batalbilling.dart';
 import 'package:bengkel/presentation/screens/batalproses.dart';
+import 'package:bengkel/presentation/screens/external_work_order_screen.dart';
 import 'package:bengkel/presentation/screens/kasir_screen.dart';
 import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
 import 'package:bengkel/presentation/screens/neraca_jurnal_screen.dart';
@@ -182,6 +183,14 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const PurchaseFormScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.shopping_bag),
+              title: const Text('External Order'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ExternalWOSearch()),
               ),
             ),
             ListTile(

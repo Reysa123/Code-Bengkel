@@ -7,7 +7,7 @@ part 'external_order_event.dart';
 part 'external_order_state.dart';
 
 class ExternalOrderBloc extends Bloc<ExternalOrderEvent, ExternalOrderState> {
-  final ExternalOrderRepository _repo =ExternalOrderRepository();
+  final ExternalOrderRepository _repo = ExternalOrderRepository();
 
   ExternalOrderBloc() : super(const ExternalOrderState()) {
     on<LoadExternalOrders>(_onLoad);
@@ -25,27 +25,30 @@ class ExternalOrderBloc extends Bloc<ExternalOrderEvent, ExternalOrderState> {
     emit(state.copyWith(status: ExternalOrderStatus.loaded, orders: list));
   }
 
-  Future<void> _onAdd(
+  Future<int> _onAdd(
     AddExternalOrder event,
     Emitter<ExternalOrderState> emit,
   ) async {
-    await _repo.insert(event.order);
+    final a = await _repo.insert(event.order);
     add(LoadExternalOrders());
+    return a;
   }
 
-  Future<void> _onUpdate(
+  Future<int> _onUpdate(
     UpdateExternalOrder event,
     Emitter<ExternalOrderState> emit,
   ) async {
-    await _repo.update(event.order);
+    final a = await _repo.update(event.order);
     add(LoadExternalOrders());
+    return a;
   }
 
-  Future<void> _onDelete(
+  Future<int> _onDelete(
     DeleteExternalOrder event,
     Emitter<ExternalOrderState> emit,
   ) async {
-    await _repo.delete(event.id);
+    final a = await _repo.delete(event.id);
     add(LoadExternalOrders());
+    return a;
   }
 }

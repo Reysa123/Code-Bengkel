@@ -347,7 +347,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
+                                    SelectableText(
                                       wo.noWo,
                                       style: const TextStyle(
                                         fontSize: 18,

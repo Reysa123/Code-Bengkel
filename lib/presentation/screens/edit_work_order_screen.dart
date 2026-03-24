@@ -105,7 +105,7 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Buat PKB / Work Order'),
+        title: const Text('Edit PKB / Work Order'),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -266,7 +266,7 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
                 'on_progress',
                 0,
               );
-             
+
               // Simpan perubahan
               Navigator.pop(context); // Tutup dialog
             },
@@ -633,7 +633,11 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
 
   Widget _buildTabItems(String type) {
     final filteredItems = _selectedItems
-        .where((item) => item.type == type)
+        .where(
+          (item) => type == 'part'
+              ? item.type == 'opb' || item.type == type
+              : item.type == 'opl' || item.type == type,
+        )
         .toList();
 
     return Column(
@@ -646,7 +650,7 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
                     _selectedVehicle!.first['status'] == 'paid' ||
                     _selectedVehicle!.first['status'] == 'completed'
                 ? null
-                : () => _showAddItemDialog(type == 'service'),
+                : () => _showAddItemDialog(type == 'service' || type == 'opl'),
             icon: const Icon(Icons.add),
             label: Text(type == 'service' ? 'Tambah Jasa' : 'Tambah Part'),
           ),

@@ -61,11 +61,13 @@ class WorkOrderRepository {
       CASE 
         WHEN wi.type = 'service' THEN s.nama
         WHEN wi.type = 'part' THEN p.nama
+        WHEN wi.type = 'opb' THEN ex.deskripsi
         ELSE NULL
       END AS nama_item,
       CASE 
         WHEN wi.type = 'service' THEN s.harga
         WHEN wi.type = 'part' THEN p.harga_jual
+        WHEN wi.type = 'opb' THEN ex.jual
         ELSE NULL
       END AS harga_item,
       wi.item_id AS id_item,
@@ -78,6 +80,7 @@ class WorkOrderRepository {
       c.no_hp,
       m.nama AS nama_mekanik
     FROM work_orders wo
+    LEFT JOIN external_orders ex ON wi.item_id = ex.id
     LEFT JOIN wo_items wi ON wo.no_wo = wi.wo_id
     LEFT JOIN services s ON wi.type = 'service' AND wi.item_id = s.id
     LEFT JOIN parts p ON wi.type = 'part' AND wi.item_id = p.id
@@ -108,16 +111,22 @@ class WorkOrderRepository {
       CASE 
         WHEN wi.type = 'service' THEN s.nama
         WHEN wi.type = 'part' THEN p.nama
+        WHEN wi.type = 'opb' THEN ex.deskripsi
+         WHEN wi.type = 'opl' THEN ex.deskripsi
         ELSE NULL
       END AS nama_item,
       CASE 
         WHEN wi.type = 'service' THEN s.harga
         WHEN wi.type = 'part' THEN p.harga_beli
+         WHEN wi.type = 'opb' THEN ex.beli
+         WHEN wi.type = 'opl' THEN ex.beli
         ELSE NULL
       END AS harga_beli_item,
       CASE 
         WHEN wi.type = 'service' THEN s.harga
         WHEN wi.type = 'part' THEN p.harga_jual
+         WHEN wi.type = 'opb' THEN ex.jual
+         WHEN wi.type = 'opl' THEN ex.jual
         ELSE NULL
       END AS harga_jual_item,
       wi.item_id AS item_id,
@@ -132,6 +141,7 @@ class WorkOrderRepository {
       m.nama AS nama_mekanik
     FROM work_orders wo
     LEFT JOIN wo_items wi ON wo.no_wo = wi.wo_id
+    LEFT JOIN external_orders ex ON wi.item_id = ex.id
     LEFT JOIN services s ON wi.type = 'service' AND wi.item_id = s.id
     LEFT JOIN parts p ON wi.type = 'part' AND wi.item_id = p.id
     LEFT JOIN vehicles v ON wo.vehicle_id = v.id
