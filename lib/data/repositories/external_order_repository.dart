@@ -24,19 +24,36 @@ class ExternalOrderRepository {
 
   Future<int> delete(int id) async {
     final db = await _db;
+    await db.query('external_orders', where: 'id = ?', whereArgs: [id]).then((
+      v,
+    ) async {
+      final type = v.first['type'];
+      String tipe = '';
+      if (type.toString().toLowerCase() == 'service') {
+        tipe = 'opl';
+      }
+      if (type.toString().toLowerCase() == 'part') {
+        tipe = 'opb';
+      }
+      await db.delete(
+        "wo_items",
+        where: 'type = ? AND item_id = ?',
+        whereArgs: [tipe, id],
+      );
+    });
     return await db.delete('external_orders', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<ExternalOrder?> getById(int id) async {
+  Future<List<ExternalOrder>> getByNoWo(int id) async {
     final db = await _db;
     final maps = await db.query(
       'external_orders',
-      where: 'id = ?',
+      where: 'wo_id = ?',
       whereArgs: [id],
       limit: 1,
     );
-    if (maps.isEmpty) return null;
-    return ExternalOrder.fromMap(maps.first);
+    if (maps.isEmpty) return [];
+    return List.generate(maps.length, (i) => ExternalOrder.fromMap(maps[i]));
   }
 
   Future<List<ExternalOrder>> getAll() async {

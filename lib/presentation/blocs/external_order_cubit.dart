@@ -21,7 +21,7 @@ class ExternalOrderBloc extends Bloc<ExternalOrderEvent, ExternalOrderState> {
     Emitter<ExternalOrderState> emit,
   ) async {
     emit(state.copyWith(status: ExternalOrderStatus.loading));
-    final list = await _repo.getAll();
+    final list = await _repo.getByNoWo(event.nowo);
     emit(state.copyWith(status: ExternalOrderStatus.loaded, orders: list));
   }
 
@@ -30,7 +30,7 @@ class ExternalOrderBloc extends Bloc<ExternalOrderEvent, ExternalOrderState> {
     Emitter<ExternalOrderState> emit,
   ) async {
     final a = await _repo.insert(event.order);
-    add(LoadExternalOrders());
+    add(LoadExternalOrders(event.nowo));
     return a;
   }
 
@@ -39,7 +39,7 @@ class ExternalOrderBloc extends Bloc<ExternalOrderEvent, ExternalOrderState> {
     Emitter<ExternalOrderState> emit,
   ) async {
     final a = await _repo.update(event.order);
-    add(LoadExternalOrders());
+    add(LoadExternalOrders(event.nowo));
     return a;
   }
 
@@ -48,7 +48,7 @@ class ExternalOrderBloc extends Bloc<ExternalOrderEvent, ExternalOrderState> {
     Emitter<ExternalOrderState> emit,
   ) async {
     final a = await _repo.delete(event.id);
-    add(LoadExternalOrders());
+    add(LoadExternalOrders(event.nowo));
     return a;
   }
 }

@@ -7,31 +7,36 @@ abstract class ExternalOrderEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadExternalOrders extends ExternalOrderEvent {}
+class LoadExternalOrders extends ExternalOrderEvent {
+  final int nowo;
+  const LoadExternalOrders(this.nowo);
+  @override
+  List<Object?> get props => [nowo];
+}
 
 class AddExternalOrder extends ExternalOrderEvent {
   final ExternalOrder order;
-
-  const AddExternalOrder(this.order);
+final int nowo;
+  const AddExternalOrder(this.order,this.nowo);
 
   @override
-  List<Object?> get props => [order];
+  List<Object?> get props => [order,nowo];
 }
 
 class UpdateExternalOrder extends ExternalOrderEvent {
   final ExternalOrder order;
-
-  const UpdateExternalOrder(this.order);
+final int nowo;
+  const UpdateExternalOrder(this.order,this.nowo);
 
   @override
-  List<Object?> get props => [order];
+  List<Object?> get props => [order,nowo];
 }
 
 class DeleteExternalOrder extends ExternalOrderEvent {
   final int id;
-
-  const DeleteExternalOrder(this.id);
+final int nowo;
+  const DeleteExternalOrder(this.id,this.nowo);
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [id,nowo];
 }

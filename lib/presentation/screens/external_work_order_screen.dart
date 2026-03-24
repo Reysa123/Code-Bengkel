@@ -15,12 +15,10 @@ class ExternalWOSearch extends StatefulWidget {
   const ExternalWOSearch({super.key});
 
   @override
-  State<ExternalWOSearch> createState() =>
-      _ExternalWOSearchState();
+  State<ExternalWOSearch> createState() => _ExternalWOSearchState();
 }
 
-class _ExternalWOSearchState
-    extends State<ExternalWOSearch> {
+class _ExternalWOSearchState extends State<ExternalWOSearch> {
   final _woController = TextEditingController();
   bool _isLoading = false;
   String? _errorText;
@@ -150,7 +148,6 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
   Supplier? _selectedVendor;
   List<Supplier> _vendors = [];
   final SupplierRepository _supplierRepo = SupplierRepository();
-
   DateTime _selectedDate = DateTime.now();
   bool _isSaving = false;
 
@@ -161,7 +158,13 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
       'yyyy-MM-dd HH:mm',
     ).format(_selectedDate);
     _loadVendors();
+    context.read<ExternalOrderBloc>().add(LoadExternalOrders(widget.woId!));
   }
+
+  // Future<void> _loadExternal() async {
+  //   _order = await _externalRepo.getByNoWo(widget.woId!);
+  //   if (mounted) setState(() {});
+  // }
 
   Future<void> _loadVendors() async {
     _vendors = await _supplierRepo.getAll();
@@ -222,6 +225,7 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
         subtotal:
             (double.tryParse(_jualController.text.replaceAll(".", "")) ?? 0) *
             (double.tryParse(_qtyController.text) ?? 0),
+        status: 'completed',
       );
 
       await WorkOrderRepository().insertItem([items]);
@@ -242,7 +246,7 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
         ).format(_selectedDate);
       });
 
-      context.read<ExternalOrderBloc>().add(LoadExternalOrders());
+      context.read<ExternalOrderBloc>().add(LoadExternalOrders(widget.woId!));
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -576,10 +580,38 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
                                 Icons.delete_rounded,
                                 color: Colors.red,
                               ),
-                              onPressed: () {
-                                context.read<ExternalOrderBloc>().add(
-                                  DeleteExternalOrder(order.id!),
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Konfirmasi Hapus'),
+                                    content: Text(
+                                      'Apakah Anda yakin ingin menghapus external order "${order.deskripsi}" ini?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        child: const Text('Batal'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                        child: const Text('Hapus'),
+                                      ),
+                                    ],
+                                  ),
                                 );
+
+                                if (confirm == true) {
+                                  context.read<ExternalOrderBloc>().add(
+                                    DeleteExternalOrder(
+                                      order.id!,
+                                      widget.woId!,
+                                    ),
+                                  );
+                                  Navigator.pop(context);
+                                }
                               },
                             ),
                           ),

@@ -299,7 +299,10 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
           catatan: _catatanController.text,
           kmTerakhir: int.tryParse(_kmController.text) ?? 0,
         );
-        context.read<WorkOrderCubit>().updateWorkOrder(wo, _selectedItems);
+        context.read<WorkOrderCubit>().updateWorkOrder(
+          wo,
+          _selectedItems.where((v) => v.status != 'completed').toList(),
+        );
 
         Navigator.pop(
           context,
