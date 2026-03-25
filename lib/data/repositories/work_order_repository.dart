@@ -276,7 +276,7 @@ class WorkOrderRepository {
     return await db.update(
       'work_orders',
       {'status': status, 'paid': paid},
-      where: 'id = ?',
+      where: 'no_wo = ?',
       whereArgs: [woId],
     );
   }
@@ -386,8 +386,8 @@ class WorkOrderRepository {
       await db.update(
         'wo_items',
         {'status': 'completed'},
-        where: 'wo_id=? AND type=?',
-        whereArgs: [woId, 'service'],
+        where: 'wo_id=? AND type=? AND type=? AND type=?',
+        whereArgs: [woId, 'service', 'opl', 'opb'],
       );
     } catch (e) {
       throw Exception('Error completing work order: $e');
@@ -405,13 +405,17 @@ class WorkOrderRepository {
         CASE
           WHEN wi.type = 'service' THEN s.nama
           WHEN wi.type = 'part' THEN p.nama
+          WHEN wi.type = 'opl' THEN ex.deskripsi
+          WHEN wi.type = 'opb' THEN ex.deskripsi
         END AS nama_item,
         CASE
           WHEN wi.type = 'service' THEN s.harga
           WHEN wi.type = 'part' THEN p.harga_jual
-          ELSE wi.harga
+          WHEN wi.type = 'opl' THEN ex.jual
+          WHEN wi.type = 'opb' THEN ex.jual
         END AS harga
       FROM wo_items wi
+      LEFT JOIN external_orders ex ON wi.item_id = ex.id
       LEFT JOIN services s ON wi.item_id = s.id AND wi.type = 'service'
       LEFT JOIN parts p ON wi.item_id = p.id AND wi.type = 'part'
       WHERE wi.wo_id = ? AND wi.status = ?
@@ -603,7 +607,7 @@ class WorkOrderRepository {
     String tgl = DateTime.now().toIso8601String();
     final db = await dbHelper.database;
     final wo = await getAllByWoId(woId.toString());
-    double hpart = 0, pendapatanpart = 0, pendapatanjasa = 0;
+    double hpart = 0, pendapatanpart = 0, pendapatanjasa = 0, pendapatanopl = 0;
     String plat = wo.first['plat_nomor'];
     for (var e in wo) {
       if (e['type_item'] == 'part') {
@@ -612,6 +616,9 @@ class WorkOrderRepository {
       }
       if (e['type_item'] == 'service') {
         pendapatanjasa += e['harga_jual_item'] * e['qty_item'];
+      }
+      if (e['type_item'] == 'opl' || e['type_item'] == 'opb') {
+        pendapatanopl += e['harga_jual_item'] * e['qty_item'];
       }
     }
     double disc = (pendapatanpart + pendapatanjasa) - paid;
@@ -687,6 +694,30 @@ class WorkOrderRepository {
       'id_transaksi': woId,
       'dibuat_oleh': 'admin',
     });
+    await db.insert('jurnal_umum', {
+      'created_at': tgl,
+      'tanggal': wo.first['tanggal'],
+      'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+      'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+      'kode_akun': '403',
+      'nama_akun': 'Pendapatan Jasa Sublet',
+      'debit': 0.00,
+      'kredit': pendapatanopl,
+      'id_transaksi': woId,
+      'dibuat_oleh': 'admin',
+    });
+    //  await db.insert('jurnal_umum', {
+    //   'created_at': tgl,
+    //   'tanggal': wo.first['tanggal'],
+    //   'no_referensi': 'BIL-$woId', // Nomor invoice penjualan
+    //   'keterangan': 'Biaya Service Kendaraan $nacus-$plat',
+    //   'kode_akun': '101',qq
+    //   'nama_akun': 'Pendapatan Jasa Sublet',
+    //   'debit': pendapatanopl,
+    //   'kredit': 0.00,
+    //   'id_transaksi': woId,
+    //   'dibuat_oleh': 'admin',
+    // });
     await db.update(
       'work_orders',
       {

@@ -42,6 +42,7 @@ class _BillingScreenState extends State<BillingScreen> {
         int.parse(widget.workOrder.noWo),
         'completed',
       );
+      print(loadedItems.toList().toString());
       setState(() {
         _items = loadedItems;
         _isLoading = false;
@@ -101,15 +102,13 @@ class _BillingScreenState extends State<BillingScreen> {
       );
 
       // 2. Refresh WO di cubit (opsional)
-    if (!mounted) return;
+      if (!mounted) return;
       context.read<WorkOrderCubit>().loadAll();
 
       // 3. Cetak kwitansi
       // final receiptData = await _repo.getWorkOrderForReceipt(
       //   widget.workOrder.noWo,
       // );
-
-      
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -345,7 +344,7 @@ class _BillingScreenState extends State<BillingScreen> {
                               ? null
                               : _processPaymentAndPrint,
                           icon: const Icon(Icons.receipt_long),
-                          label: const Text('BAYAR LUNAS & CETAK KWITANSI'),
+                          label: const Text('CETAK KWITANSI'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green.shade700,
                             foregroundColor: Colors.white,

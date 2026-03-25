@@ -269,10 +269,11 @@ class _EditWorkOrderScreenState extends State<EditWorkOrderScreen>
 
               // Simpan perubahan
               Navigator.pop(context); // Tutup dialog
+              Navigator.pop(context);
             },
             child: const Text(
               'Ya, Batalkan',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.redAccent),
             ),
           ),
         ],

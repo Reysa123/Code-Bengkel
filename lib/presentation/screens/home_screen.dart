@@ -9,6 +9,7 @@ import 'package:bengkel/presentation/screens/kasir_screen.dart';
 import 'package:bengkel/presentation/screens/mechanic_list_screen.dart';
 import 'package:bengkel/presentation/screens/neraca_jurnal_screen.dart';
 import 'package:bengkel/presentation/screens/part_list_screen.dart';
+import 'package:bengkel/presentation/screens/paymentsuplier.dart';
 import 'package:bengkel/presentation/screens/purchse_form_screen.dart';
 import 'package:bengkel/presentation/screens/supplier_screen.dart';
 import 'package:bengkel/presentation/screens/vehicle_search_screen.dart';
@@ -211,6 +212,14 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const NeracaJurnalScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.payments_sharp),
+              title: const Text('Pembayaran Pihak Ketiga/Supllier'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PenagihanVendorPage()),
               ),
             ),
             ListTile(

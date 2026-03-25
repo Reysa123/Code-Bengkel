@@ -12,13 +12,94 @@ class ExternalOrderRepository {
     return await db.insert('external_orders', order.toMap());
   }
 
-  Future<int> update(ExternalOrder order) async {
+  Future<void> insertJurnal(
+    String tgl,
+    String nospk,
+    String desc,
+    double hargaModal,
+    double hargaJual,
+    int nowo,
+  ) async {
     final db = await _db;
+    String tgls = DateTime.now().toIso8601String();
+    await db.insert('jurnal_umum', {
+      'created_at': tgls,
+      'tanggal': tgl,
+      'no_referensi': nospk, // Nomor invoice penjualan
+      'keterangan': desc,
+      'kode_akun': '502',
+      'nama_akun': 'HPP Jasa Sublet',
+      'debit': hargaModal,
+      'kredit': 0.0,
+      'id_transaksi': nowo,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgls,
+      'tanggal': tgl,
+      'no_referensi': nospk, // Nomor invoice penjualan
+      'keterangan': desc,
+      'kode_akun': '202',
+      'nama_akun': 'Hutang Pihak Ketiga (Sublet)',
+      'debit': 0.0,
+      'kredit': hargaModal,
+      'id_transaksi': nowo,
+      'dibuat_oleh': 'admin',
+    });
+  }
+
+  Future<void> postJurnal(
+    String tgl,
+    String nospk,
+    String vendor,
+    double hargaModal,
+    int nowo,
+    List<int> id,
+  ) async {
+    final db = await _db;
+    String tgls = DateTime.now().toIso8601String();
+    await db.insert('jurnal_umum', {
+      'created_at': tgls,
+      'tanggal': tgl,
+      'no_referensi': 'PAY-$nospk', // Nomor invoice penjualan
+      'keterangan': 'Pelunasan Sublet ke $vendor',
+      'kode_akun': '202',
+      'nama_akun': 'Hutang Pihak Ketiga (Sublet)',
+      'debit': hargaModal,
+      'kredit': 0.00,
+      'id_transaksi': nowo,
+      'dibuat_oleh': 'admin',
+    });
+    await db.insert('jurnal_umum', {
+      'created_at': tgls,
+      'tanggal': tgl,
+      'no_referensi': 'PAY-$nospk', // Nomor invoice penjualan
+      'keterangan': 'Pelunasan Sublet ke $vendor',
+      'kode_akun': '101',
+      'nama_akun': 'Kas',
+      'debit': 0.00,
+      'kredit': hargaModal,
+      'id_transaksi': nowo,
+      'dibuat_oleh': 'admin',
+    });
+    for (var e in id) {
+      await db.update(
+        'external_orders',
+        {'status': 'Lunas'},
+        where: 'id = ?',
+        whereArgs: [e],
+      );
+    }
+  }
+
+  Future<int> update(int id, String nospk) async {
+    final db = await _db;
+
     return await db.update(
       'external_orders',
-      order.toMap(),
+      {'nospk': nospk},
       where: 'id = ?',
-      whereArgs: [order.id],
+      whereArgs: [id],
     );
   }
 
@@ -58,7 +139,12 @@ class ExternalOrderRepository {
 
   Future<List<ExternalOrder>> getAll() async {
     final db = await _db;
-    final result = await db.query('external_orders', orderBy: 'id DESC');
+    final result = await db.query(
+      'external_orders',
+      orderBy: 'id DESC',
+      where: 'status != ?',
+      whereArgs: ['Lunas'],
+    );
     return result.map((row) => ExternalOrder.fromMap(row)).toList();
   }
 }

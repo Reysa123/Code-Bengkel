@@ -13,7 +13,7 @@ class LoadExternalOrders extends ExternalOrderEvent {
   @override
   List<Object?> get props => [nowo];
 }
-
+class LoadAllExternalOrders extends ExternalOrderEvent{}
 class AddExternalOrder extends ExternalOrderEvent {
   final ExternalOrder order;
 final int nowo;
@@ -24,7 +24,7 @@ final int nowo;
 }
 
 class UpdateExternalOrder extends ExternalOrderEvent {
-  final ExternalOrder order;
+  final String order;
 final int nowo;
   const UpdateExternalOrder(this.order,this.nowo);
 

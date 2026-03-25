@@ -99,7 +99,7 @@ class DatabaseHelper {
 
     await db.execute('''CREATE TABLE external_orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT, tanggal TEXT, wo_id INTEGER, type TEXT,
-      deskripsi TEXT, beli REAL, jual REAL, qty REAL, vendor TEXT,
+      deskripsi TEXT, beli REAL, jual REAL, qty REAL, vendor TEXT, status TEXT, nospk TEXT,
       FOREIGN KEY (wo_id) REFERENCES work_orders(id)
     )''');
 
@@ -177,6 +177,13 @@ CREATE TABLE jurnal_umum (
         'type': 'liability',
         'normal_balance': 'kredit',
       },
+      // Tambahan untuk Kewajiban (Liability)
+      {
+        'code': '202',
+        'name': 'Hutang Pihak Ketiga (Sublet)',
+        'type': 'liability',
+        'normal_balance': 'kredit',
+      },
       {
         'code': '301',
         'name': 'Modal Pemilik',
@@ -195,9 +202,23 @@ CREATE TABLE jurnal_umum (
         'type': 'revenue',
         'normal_balance': 'kredit',
       },
+      // Tambahan untuk Pendapatan (Revenue)
+      {
+        'code': '403',
+        'name': 'Pendapatan Jasa Sublet',
+        'type': 'revenue',
+        'normal_balance': 'kredit',
+      },
       {
         'code': '501',
         'name': 'Harga Pokok Penjualan Part',
+        'type': 'expense',
+        'normal_balance': 'debit',
+      },
+      // Tambahan untuk Beban/HPP (Expense)
+      {
+        'code': '502',
+        'name': 'HPP Jasa Sublet',
         'type': 'expense',
         'normal_balance': 'debit',
       },

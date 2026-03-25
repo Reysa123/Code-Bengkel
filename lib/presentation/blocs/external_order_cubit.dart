@@ -11,6 +11,7 @@ class ExternalOrderBloc extends Bloc<ExternalOrderEvent, ExternalOrderState> {
 
   ExternalOrderBloc() : super(const ExternalOrderState()) {
     on<LoadExternalOrders>(_onLoad);
+    on<LoadAllExternalOrders>(_onLoadAll);
     on<AddExternalOrder>(_onAdd);
     on<UpdateExternalOrder>(_onUpdate);
     on<DeleteExternalOrder>(_onDelete);
@@ -22,6 +23,15 @@ class ExternalOrderBloc extends Bloc<ExternalOrderEvent, ExternalOrderState> {
   ) async {
     emit(state.copyWith(status: ExternalOrderStatus.loading));
     final list = await _repo.getByNoWo(event.nowo);
+    emit(state.copyWith(status: ExternalOrderStatus.loaded, orders: list));
+  }
+
+  Future<void> _onLoadAll(
+    LoadAllExternalOrders event,
+    Emitter<ExternalOrderState> emit,
+  ) async {
+    emit(state.copyWith(status: ExternalOrderStatus.loading));
+    final list = await _repo.getAll();
     emit(state.copyWith(status: ExternalOrderStatus.loaded, orders: list));
   }
 
@@ -38,8 +48,8 @@ class ExternalOrderBloc extends Bloc<ExternalOrderEvent, ExternalOrderState> {
     UpdateExternalOrder event,
     Emitter<ExternalOrderState> emit,
   ) async {
-    final a = await _repo.update(event.order);
-    add(LoadExternalOrders(event.nowo));
+    final a = await _repo.update(event.nowo, event.order);
+    // add(LoadExternalOrders(event.nowo));
     return a;
   }
 

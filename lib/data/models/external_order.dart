@@ -8,7 +8,9 @@ class ExternalOrder {
   final double? jual;
   final double? qty;
   final String? vendor;
-
+  final String? status;
+  final String? nospk;
+  bool? isSelect = false;
   ExternalOrder({
     this.id,
     this.tanggal,
@@ -19,6 +21,9 @@ class ExternalOrder {
     this.jual,
     this.qty,
     this.vendor,
+    this.status,
+    this.nospk,
+    this.isSelect,
   });
 
   factory ExternalOrder.fromMap(Map<String, dynamic> map) => ExternalOrder(
@@ -31,6 +36,8 @@ class ExternalOrder {
     jual: (map['jual'] as num?)?.toDouble(),
     qty: (map['qty'] as num?)?.toDouble(),
     vendor: map['vendor'] as String?,
+    status: map['status'] as String,
+    nospk: map['nospk'] as String,
   );
 
   Map<String, dynamic> toMap() => {
@@ -43,5 +50,7 @@ class ExternalOrder {
     'jual': jual,
     'qty': qty,
     'vendor': vendor,
+    'status': status,
+    'nospk': nospk,
   };
 }

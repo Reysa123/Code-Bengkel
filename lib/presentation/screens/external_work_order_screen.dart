@@ -1,7 +1,9 @@
+import 'package:bengkel/core/constants/app_constants.dart';
 import 'package:bengkel/data/models/supplier.dart';
 import 'package:bengkel/data/models/wo_item.dart';
 import 'package:bengkel/data/repositories/external_order_repository.dart';
 import 'package:bengkel/data/repositories/work_order_repository.dart';
+import 'package:bengkel/utils/printspk.dart';
 import 'package:bengkel/utils/ribuan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,8 +64,10 @@ class _ExternalWOSearchState extends State<ExternalWOSearch> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) =>
-              ExternalOrderFormScreen(woId: int.parse(woData.first['no_wo'])),
+          builder: (_) => ExternalOrderFormScreen(
+            woId: int.parse(woData.first['no_wo']),
+            woData: woData,
+          ),
         ),
       );
     } catch (e) {
@@ -129,7 +133,8 @@ class _ExternalWOSearchState extends State<ExternalWOSearch> {
 
 class ExternalOrderFormScreen extends StatefulWidget {
   final int? woId;
-  const ExternalOrderFormScreen({super.key, this.woId});
+  final List<Map<String, dynamic>>? woData;
+  const ExternalOrderFormScreen({super.key, this.woId, this.woData});
 
   @override
   State<ExternalOrderFormScreen> createState() =>
@@ -145,6 +150,7 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
   final _qtyController = TextEditingController();
 
   String? _selectedType;
+  String? _status;
   Supplier? _selectedVendor;
   List<Supplier> _vendors = [];
   final SupplierRepository _supplierRepo = SupplierRepository();
@@ -205,31 +211,44 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
         woId: widget.woId,
         type: _selectedType,
         deskripsi: _deskripsiController.text,
-        beli: double.tryParse(_beliController.text),
-        jual: double.tryParse(_jualController.text),
-        qty: double.tryParse(_qtyController.text),
+        beli: double.tryParse(_beliController.text.replaceAll('.', '')),
+        jual: double.tryParse(_jualController.text.replaceAll('.', '')),
+        qty: double.tryParse(_qtyController.text.replaceAll('.', '')),
         vendor: _selectedVendor!.nama,
+        status: _status,
+        nospk: "",
       );
 
       final int a = await ExternalOrderRepository().insert(
         order,
       ); //context.read<ExternalOrderBloc>().add(AddExternalOrder(order));
-
+      final nospk =
+          "SUB-${DateTime.now().year}-${a.toString().padLeft(3, '0')}";
+      context.read<ExternalOrderBloc>().add(UpdateExternalOrder(nospk, a));
       final items = WoItem(
         woId: widget.woId,
         type: _selectedType?.toLowerCase() == 'part' ? 'opb' : 'opl',
         itemId: a,
         namaItem: _deskripsiController.text,
-        qty: int.tryParse(_qtyController.text) ?? 0,
+        qty: int.tryParse(_qtyController.text.replaceAll('.', '')) ?? 0,
         harga: double.tryParse(_jualController.text.replaceAll(".", "")) ?? 0,
         subtotal:
             (double.tryParse(_jualController.text.replaceAll(".", "")) ?? 0) *
-            (double.tryParse(_qtyController.text) ?? 0),
+            (double.tryParse(_qtyController.text.replaceAll('.', '')) ?? 0),
         status: 'completed',
       );
 
       await WorkOrderRepository().insertItem([items]);
-
+      SubletPdfService.generateSubletDoc(
+        noSPK: nospk,
+        namaVendor: _selectedVendor!.nama,
+        namaBengkelKita: AppConstants.companyName,
+        noPolisi: widget.woData!.first['plat_nomor'],
+        deskripsiPekerjaan: _deskripsiController.text,
+        qty:_qtyController.text.replaceAll('.', ''),
+        hargaKesepakatan:
+            double.tryParse(_beliController.text.replaceAll(".", "")) ?? 0,
+      );
       if (!mounted) return;
 
       // Clear form
@@ -239,6 +258,7 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
       _qtyController.clear();
       setState(() {
         _selectedType = null;
+        _status = null;
         _selectedVendor = null;
         _selectedDate = DateTime.now();
         _tanggalController.text = DateFormat(
@@ -449,8 +469,31 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 28),
 
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<String>(
+                            initialValue: _status,
+                            decoration: InputDecoration(
+                              labelText: 'Status Pembayaran',
+                              prefixIcon: const Icon(Icons.payment_sharp),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                            ),
+                            items: ['Tunai', 'Kredit']
+                                .map(
+                                  (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(e),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (val) => setState(() => _status = val),
+                            validator: (v) =>
+                                v == null ? 'Pilih tipe pembayaran' : null,
+                          ),
+                          const SizedBox(height: 28),
                           SizedBox(
                             width: double.infinity,
                             height: 56,
