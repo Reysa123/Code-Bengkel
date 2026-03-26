@@ -87,7 +87,7 @@ class _HistoryWorkOrderScreenState extends State<HistoryWorkOrderScreen> {
     }
 
     final pdf = pw.Document();
-
+    final compName = await AppConstants.companyName();
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -99,7 +99,7 @@ class _HistoryWorkOrderScreenState extends State<HistoryWorkOrderScreen> {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  AppConstants.companyName,
+                  compName,
                   style: pw.TextStyle(
                     fontSize: 20,
                     fontWeight: pw.FontWeight.bold,

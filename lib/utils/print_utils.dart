@@ -8,7 +8,9 @@ import 'package:printing/printing.dart';
 
 Future<void> printWorkOrderReceipt(WorkOrder wo, List<WoItem> items) async {
   final pdf = pw.Document();
-
+final name = await AppConstants.companyName();
+  final add = await AppConstants.companyAddress();
+  final phone = await AppConstants.companyPhone();
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
@@ -23,7 +25,7 @@ Future<void> printWorkOrderReceipt(WorkOrder wo, List<WoItem> items) async {
             ),
           ),
           pw.Center(
-            child: pw.Text(AppConstants.companyName, style: pw.TextStyle(fontSize: 14)),
+            child: pw.Text(name, style: pw.TextStyle(fontSize: 14)),
           ),
           pw.SizedBox(height: 8),
           pw.Center(

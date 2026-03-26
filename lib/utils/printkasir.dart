@@ -23,12 +23,14 @@ Future<Uint8List> generateReceiptPdf({
 
   final font = pw.Font.helvetica();
   final boldFont = pw.Font.helveticaBold(); // better contrast for totals
-  final logo = await rootBundle.load(AppConstants.logoPath);
+  final logo = await rootBundle.load(AppConstants.logoPath() as String);
   final dateFormat = DateFormat('dd MMM yyyy');
   final tanggal = dateFormat.format(
     DateTime.tryParse(workOrder.tanggal) ?? DateTime.now(),
   );
-
+final name = await AppConstants.companyName();
+  final add = await AppConstants.companyAddress();
+  final phone = await AppConstants.companyPhone();
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
@@ -51,16 +53,16 @@ Future<Uint8List> generateReceiptPdf({
                   ),
                   pw.SizedBox(height: 8),
                   pw.Text(
-                    AppConstants.companyName,
+                    name,
                     style: pw.TextStyle(font: boldFont, fontSize: 15),
                   ),
                   pw.SizedBox(height: 2),
                   pw.Text(
-                    AppConstants.companyAddress,
+                    add,
                     style: pw.TextStyle(fontSize: 9, font: font),
                   ),
                   pw.Text(
-                    'Telp/WA: ${AppConstants.companyPhone}',
+                    'Telp/WA: $phone',
                     style: pw.TextStyle(fontSize: 9, font: font),
                   ),
                   pw.SizedBox(height: 10),

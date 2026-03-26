@@ -9,7 +9,9 @@ import '../utils/number_format.dart'; // nf dari sebelumnya
 
 Future<void> printWorkOrderInvoice(WorkOrder wo, List<WoItem> items) async {
   final pdf = pw.Document();
-
+final name = await AppConstants.companyName();
+  final add = await AppConstants.companyAddress();
+  final phone = await AppConstants.companyPhone();
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
@@ -21,7 +23,7 @@ Future<void> printWorkOrderInvoice(WorkOrder wo, List<WoItem> items) async {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text(
-                AppConstants.companyName,
+                name,
                 style: pw.TextStyle(
                   fontSize: 22,
                   fontWeight: pw.FontWeight.bold,

@@ -49,10 +49,18 @@ class _HomeScreenState extends State<HomeScreen> {
     return DateTimeRange(start: start, end: end);
   }
 
+  void start() async {
+    compName = await AppConstants.companyName();
+    addName = await AppConstants.companyAddress();
+  }
+
+  String compName = '';
+  String addName = '';
   @override
   void initState() {
     super.initState();
     context.read<WorkOrderCubit>().loadAll(dateRange: _currentMonthRange());
+    start();
   }
 
   @override
@@ -80,8 +88,8 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             // Header Drawer
             UserAccountsDrawerHeader(
-              accountName: const Text(AppConstants.companyName),
-              accountEmail: const Text(AppConstants.companyAddress),
+              accountName: Text(compName),
+              accountEmail: Text(addName),
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Image.asset(

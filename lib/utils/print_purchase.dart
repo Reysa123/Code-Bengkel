@@ -19,7 +19,9 @@ Future<void> printPurchaseNota(
   // Load font (opsional, agar lebih bagus di Android/iOS)
   // final fontData = await rootBundle.load("assets/fonts/Roboto-Regular.ttf");
   // final ttf = pw.Font.ttf(fontData);
-
+  final name = await AppConstants.companyName();
+  final add = await AppConstants.companyAddress();
+  final phone = await AppConstants.companyPhone();
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
@@ -34,18 +36,18 @@ Future<void> printPurchaseNota(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(
-                    AppConstants.companyName,
+                    name,
                     style: pw.TextStyle(
                       fontSize: 20,
                       fontWeight: pw.FontWeight.bold,
                     ),
                   ),
                   pw.Text(
-                    AppConstants.companyAddress,
+                    add,
                     style: const pw.TextStyle(fontSize: 12),
                   ),
                   pw.Text(
-                    AppConstants.companyPhone,
+                   phone,
                     style: const pw.TextStyle(fontSize: 12),
                   ),
                 ],

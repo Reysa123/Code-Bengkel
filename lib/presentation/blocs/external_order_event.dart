@@ -13,30 +13,31 @@ class LoadExternalOrders extends ExternalOrderEvent {
   @override
   List<Object?> get props => [nowo];
 }
-class LoadAllExternalOrders extends ExternalOrderEvent{}
+
+class LoadAllExternalOrders extends ExternalOrderEvent {}
+
 class AddExternalOrder extends ExternalOrderEvent {
   final ExternalOrder order;
-final int nowo;
-  const AddExternalOrder(this.order,this.nowo);
+  final int nowo;
+  const AddExternalOrder(this.order, this.nowo);
 
   @override
-  List<Object?> get props => [order,nowo];
+  List<Object?> get props => [order, nowo];
 }
 
 class UpdateExternalOrder extends ExternalOrderEvent {
   final String order;
-final int nowo;
-  const UpdateExternalOrder(this.order,this.nowo);
+  final int nowo;
+  const UpdateExternalOrder(this.order, this.nowo);
 
   @override
-  List<Object?> get props => [order,nowo];
+  List<Object?> get props => [order, nowo];
 }
 
 class DeleteExternalOrder extends ExternalOrderEvent {
   final int id;
-final int no_referensi;
-  const DeleteExternalOrder(this.id,this.no_referensi);
+  const DeleteExternalOrder(this.id);
 
   @override
-  List<Object?> get props => [id,nowo];
+  List<Object?> get props => [id];
 }

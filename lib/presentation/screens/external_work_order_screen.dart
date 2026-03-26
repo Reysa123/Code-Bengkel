@@ -242,7 +242,7 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
       SubletPdfService.generateSubletDoc(
         noSPK: nospk,
         namaVendor: _selectedVendor!.nama,
-        namaBengkelKita: AppConstants.companyName,
+        namaBengkelKita: await AppConstants.companyName(),
         noPolisi: widget.woData!.first['plat_nomor'],
         deskripsiPekerjaan: _deskripsiController.text,
         qty:_qtyController.text.replaceAll('.', ''),

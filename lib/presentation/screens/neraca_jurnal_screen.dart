@@ -174,7 +174,11 @@ class _NeracaJurnalScreenState extends State<NeracaJurnalScreen>
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
-                    children: [_buildNeracaTab(), _buildJurnalTab(),_buildLabaRugiTab() // Widget baru],
+                    children: [
+                      _buildNeracaTab(),
+                      _buildJurnalTab(),
+                      _buildLabaRugiTab(),
+                    ],
                   ),
                 ),
               ],
@@ -307,99 +311,122 @@ class _NeracaJurnalScreenState extends State<NeracaJurnalScreen>
       ),
     );
   }
-Widget _buildLabaRugiTab() {
-  // 1. Kelompokkan data dari _jurnalList
-  Map<String, double> pendapatanMap = {};
-  Map<String, double> bebanMap = {};
-  double totalPendapatan = 0;
-  double totalBeban = 0;
 
-  for (var j in _jurnalList) {
-    // Logika: Kode akun '4' biasanya Pendapatan, '5' & '6' adalah Beban
-    if (j.kodeAkun.startsWith('4')) {
-      double saldo = (j.kredit - j.debit); // Pendapatan bertambah di Kredit
-      pendapatanMap.update(j.namaAkun ?? j.kodeAkun, (v) => v + saldo, ifAbsent: () => saldo);
-      totalPendapatan += saldo;
-    } else if (j.kodeAkun.startsWith('5') || j.kodeAkun.startsWith('6')) {
-      double saldo = (j.debit - j.kredit); // Beban bertambah di Debit
-      bebanMap.update(j.namaAkun ?? j.kodeAkun, (v) => v + saldo, ifAbsent: () => saldo);
-      totalBeban += saldo;
+  Widget _buildLabaRugiTab() {
+    // 1. Kelompokkan data dari _jurnalList
+    Map<String, double> pendapatanMap = {};
+    Map<String, double> bebanMap = {};
+    double totalPendapatan = 0;
+    double totalBeban = 0;
+
+    for (var j in _jurnalList) {
+      // Logika: Kode akun '4' biasanya Pendapatan, '5' & '6' adalah Beban
+      if (j.kodeAkun.startsWith('4')) {
+        double saldo = (j.kredit - j.debit); // Pendapatan bertambah di Kredit
+        pendapatanMap.update(
+          j.namaAkun ?? j.kodeAkun,
+          (v) => v + saldo,
+          ifAbsent: () => saldo,
+        );
+        totalPendapatan += saldo;
+      } else if (j.kodeAkun.startsWith('5') || j.kodeAkun.startsWith('6')) {
+        double saldo = (j.debit - j.kredit); // Beban bertambah di Debit
+        bebanMap.update(
+          j.namaAkun ?? j.kodeAkun,
+          (v) => v + saldo,
+          ifAbsent: () => saldo,
+        );
+        totalBeban += saldo;
+      }
     }
+
+    double labaRugiBersih = totalPendapatan - totalBeban;
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Card Ringkasan Laba Rugi Bersih
+            _buildSummaryCard(
+              labaRugiBersih >= 0 ? 'Laba Bersih' : 'Rugi Bersih',
+              labaRugiBersih,
+              labaRugiBersih >= 0 ? Colors.green.shade700 : Colors.red.shade700,
+            ),
+            const SizedBox(height: 20),
+
+            // SEKSI PENDAPATAN
+            const Text(
+              'PENDAPATAN',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.indigo,
+              ),
+            ),
+            const Divider(thickness: 2),
+            ...pendapatanMap.entries.map(
+              (e) => _buildLabaRugiRow(e.key, e.value),
+            ),
+            _buildTotalRow('Total Pendapatan', totalPendapatan),
+
+            const SizedBox(height: 30),
+
+            // SEKSI BEBAN
+            const Text(
+              'BEBAN',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+            ),
+            const Divider(thickness: 2),
+            ...bebanMap.entries.map((e) => _buildLabaRugiRow(e.key, e.value)),
+            _buildTotalRow('Total Beban', totalBeban),
+
+            const SizedBox(height: 20),
+            const Divider(thickness: 3),
+            _buildTotalRow('LABA (RUGI) BERSIH', labaRugiBersih, isBold: true),
+          ],
+        ),
+      ),
+    );
   }
 
-  double labaRugiBersih = totalPendapatan - totalBeban;
+  // Helper Widget untuk Baris Item
+  Widget _buildLabaRugiRow(String label, double amount) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [Text(label), Text(formatCurrencyWithSymbol(amount))],
+      ),
+    );
+  }
 
-  return RefreshIndicator(
-    onRefresh: _loadData,
-    child: SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  // Helper Widget untuk Baris Total
+  Widget _buildTotalRow(String label, double amount, {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Card Ringkasan Laba Rugi Bersih
-          _buildSummaryCard(
-            labaRugiBersih >= 0 ? 'Laba Bersih' : 'Rugi Bersih',
-            labaRugiBersih,
-            labaRugiBersih >= 0 ? Colors.green.shade700 : Colors.red.shade700,
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+            ),
           ),
-          const SizedBox(height: 20),
-
-          // SEKSI PENDAPATAN
-          const Text('PENDAPATAN', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
-          const Divider(thickness: 2),
-          ...pendapatanMap.entries.map((e) => _buildLabaRugiRow(e.key, e.value)),
-          _buildTotalRow('Total Pendapatan', totalPendapatan),
-          
-          const SizedBox(height: 30),
-
-          // SEKSI BEBAN
-          const Text('BEBAN', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-          const Divider(thickness: 2),
-          ...bebanMap.entries.map((e) => _buildLabaRugiRow(e.key, e.value)),
-          _buildTotalRow('Total Beban', totalBeban),
-          
-          const SizedBox(height: 20),
-          const Divider(thickness: 3),
-          _buildTotalRow('LABA (RUGI) BERSIH', labaRugiBersih, isBold: true),
+          Text(
+            formatCurrencyWithSymbol(amount),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: amount < 0 && isBold ? Colors.red : Colors.black,
+            ),
+          ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
-// Helper Widget untuk Baris Item
-Widget _buildLabaRugiRow(String label, double amount) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label),
-        Text(formatCurrencyWithSymbol(amount)),
-      ],
-    ),
-  );
-}
-
-// Helper Widget untuk Baris Total
-Widget _buildTotalRow(String label, double amount, {bool isBold = false}) {
-  return Padding(
-    padding: const EdgeInsets.only(top: 8),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.w600)),
-        Text(
-          formatCurrencyWithSymbol(amount),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: amount < 0 && isBold ? Colors.red : Colors.black,
-          ),
-        ),
-      ],
-    ),
-  );
-}
   Widget _buildSummaryCard(String title, double amount, Color color) {
     return Card(
       elevation: 4,

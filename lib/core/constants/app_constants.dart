@@ -2,19 +2,54 @@
 // lib/core/constants/app_constants.dart
 // ================================================
 
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class AppConstants async{
-  final String response = await rootBundle.loadString('assets/images/apps.json');
-    _config = json.decode(response);
-   static const String appName= _config['name'];
-    static const String appVersion = _config['version'];
-  static const String companyName = _config['company_name'];
-  static const String companyAddress = _config['address'];
-  static const String companyPhone = _config['phone'];
-  static const String logoPath = _config['logo_path'];
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class AppConstants {
+  static Future<String> appName() async {
+    final String response = await rootBundle.loadString('images/apps.json');
+
+    final a = json.decode(response);
+    return a['name'];
+  }
+
+  static Future<String> companyName() async {
+    final String response = await rootBundle.loadString('images/apps.json');
+
+    final a = json.decode(response);
+    return a['company_name'];
+  }
+
+  static Future<String> companyAddress() async {
+    final String response = await rootBundle.loadString('images/apps.json');
+
+    final a = json.decode(response);
+    return a['address'];
+  }
+
+  static Future<String> companyPhone() async {
+    final String response = await rootBundle.loadString('images/apps.json');
+
+    final a = json.decode(response);
+    return a['phone'];
+  }
+
+  static Future<String> logoPath() async {
+    final String response = await rootBundle.loadString('images/apps.json');
+
+    final a = json.decode(response);
+    return a['logo_path'];
+  }
+  // static String appName = _config['name'];
+  // static String appVersion = _config['version'];
+  // static String companyName = _config['company_name'];
+  // static String companyAddress = _config['address'];
+  // static String companyPhone = _config['phone'];
+  // static String logoPath = _config['logo_path'];
   // ==================== APP INFO ====================
- // static const String appName = 'Bengkel Manager Pro';
+  // static const String appName = 'Bengkel Manager Pro';
   // static const String appVersion = '1.0.0';
   // static const String companyName = 'Bengkel ABC';
   // static const String companyAddress = 'Jl. Raya Denpasar No. 123, Bali';

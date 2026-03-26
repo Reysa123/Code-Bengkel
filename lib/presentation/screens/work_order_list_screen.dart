@@ -110,20 +110,20 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
   }
 
   // ====================== UBAH STATUS ======================
-  Future<void> _updateStatus(WorkOrder wo, String newStatus) async {
-    double paid = wo.paid;
-    if (newStatus == 'paid') paid = wo.total;
+  // Future<void> _updateStatus(WorkOrder wo, String newStatus) async {
+  //   double paid = wo.paid;
+  //   if (newStatus == 'paid') paid = wo.total;
 
-    await _repository.updateStatus(wo.id!, newStatus, paid);
-    if (!mounted) return;
-    await context.read<WorkOrderCubit>().loadAll();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Status diubah menjadi ${newStatus.toUpperCase()}'),
-      ),
-    );
-  }
+  //   await _repository.updateStatus(wo.id!, newStatus, paid);
+  //   if (!mounted) return;
+  //   await context.read<WorkOrderCubit>().loadAll();
+  //   if (!mounted) return;
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text('Status diubah menjadi ${newStatus.toUpperCase()}'),
+  //     ),
+  //   );
+  // }
 
   // ====================== DELETE ======================
 
@@ -465,7 +465,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               var s =
                                                   await WorkOrderRepository()
                                                       .getAllByWoId(wo.noWo);
-
+ if (!mounted) return;
                                               for (var e in s) {
                                                 if (e['type'] == 'part') {
                                                   d.add(e['status_item']);
@@ -546,6 +546,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                               result =
                                                   await WorkOrderRepository()
                                                       .getAllByWoId(wo.noWo);
+                                                      
                                               await Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
@@ -556,6 +557,7 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
                                                 ),
                                               ).then((onValue) {
                                                 if (onValue == true) {
+                                                  
                                                   // Jika data berhasil diupdate, tampilkan SnackBar sukses
                                                   ScaffoldMessenger.of(
                                                     context,

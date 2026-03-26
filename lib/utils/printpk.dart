@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bengkel/core/constants/app_constants.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -15,6 +17,9 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
     (sum, item) => sum + (item['subtotal_item'] as num? ?? 0).toDouble(),
   );
   pw.TextStyle style = const pw.TextStyle(fontSize: 8);
+  final name = await AppConstants.companyName();
+  final add = await AppConstants.companyAddress();
+  final phone = await AppConstants.companyPhone();
   pdf.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
@@ -22,17 +27,11 @@ Future<void> generatePKPDF(List<Map<String, dynamic>> workOrders) async {
       build: (pw.Context context) => [
         // Header Bengkel
         pw.Text(
-          AppConstants.companyName,
+          name,
           style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
         ),
-        pw.Text(
-          AppConstants.companyAddress,
-          style: const pw.TextStyle(fontSize: 10),
-        ),
-        pw.Text(
-          'Telp: ${AppConstants.companyPhone}',
-          style: const pw.TextStyle(fontSize: 10),
-        ),
+        pw.Text(add, style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Telp: $phone', style: const pw.TextStyle(fontSize: 10)),
         pw.SizedBox(height: 10),
         pw.Align(
           alignment: pw.Alignment.centerRight,
