@@ -624,6 +624,30 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
                                 color: Colors.red,
                               ),
                               onPressed: () async {
+                                if (order.status == 'Lunas') {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              SizedBox(width: 10),
+              Text('Peringatan'),
+            ],
+          ),
+          content: const Text('Order tidak bisa dihapus karena sudah terbayar lunas.'),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
+    return; // Berhenti di sini, jangan lanjut ke dialog konfirmasi
+  }
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => AlertDialog(
