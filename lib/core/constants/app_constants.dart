@@ -4,14 +4,22 @@
 
 import 'package:flutter/material.dart';
 
-class AppConstants {
+class AppConstants async{
+  final String response = await rootBundle.loadString('assets/images/apps.json');
+    _config = json.decode(response);
+   static const String appName= _config['name'];
+    static const String appVersion = _config['version'];
+  static const String companyName = _config['company_name'];
+  static const String companyAddress = _config['address'];
+  static const String companyPhone = _config['phone'];
+  static const String logoPath = _config['logo_path'];
   // ==================== APP INFO ====================
-  static const String appName = 'Bengkel Manager Pro';
-  static const String appVersion = '1.0.0';
-  static const String companyName = 'Bengkel ABC';
-  static const String companyAddress = 'Jl. Raya Denpasar No. 123, Bali';
-  static const String companyPhone = '(0361) 123456';
-  static const String logoPath = 'images/logo.png';
+ // static const String appName = 'Bengkel Manager Pro';
+  // static const String appVersion = '1.0.0';
+  // static const String companyName = 'Bengkel ABC';
+  // static const String companyAddress = 'Jl. Raya Denpasar No. 123, Bali';
+  // static const String companyPhone = '(0361) 123456';
+  // static const String logoPath = 'images/logo.png';
 
   // ==================== DATABASE ====================
   static const String dbName = 'bengkel.db';

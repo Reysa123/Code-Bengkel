@@ -121,6 +121,11 @@ class ExternalOrderRepository {
         where: 'type = ? AND item_id = ?',
         whereArgs: [tipe, id],
       );
+      await db.delete(
+        "jurnal_umum",
+        where: 'no_referensi = ?',
+        whereArgs: [v.first['nospk']],
+      );
     });
     return await db.delete('external_orders', where: 'id = ?', whereArgs: [id]);
   }

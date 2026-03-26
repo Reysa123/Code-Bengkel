@@ -650,7 +650,6 @@ class _ExternalOrderFormScreenState extends State<ExternalOrderFormScreen> {
                                   context.read<ExternalOrderBloc>().add(
                                     DeleteExternalOrder(
                                       order.id!,
-                                      widget.woId!,
                                     ),
                                   );
                                   Navigator.pop(context);

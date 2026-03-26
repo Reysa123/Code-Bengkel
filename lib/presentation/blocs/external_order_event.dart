@@ -34,8 +34,8 @@ final int nowo;
 
 class DeleteExternalOrder extends ExternalOrderEvent {
   final int id;
-final int nowo;
-  const DeleteExternalOrder(this.id,this.nowo);
+final int no_referensi;
+  const DeleteExternalOrder(this.id,this.no_referensi);
 
   @override
   List<Object?> get props => [id,nowo];

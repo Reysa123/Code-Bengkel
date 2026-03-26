@@ -58,7 +58,7 @@ class ExternalOrderBloc extends Bloc<ExternalOrderEvent, ExternalOrderState> {
     Emitter<ExternalOrderState> emit,
   ) async {
     final a = await _repo.delete(event.id);
-    add(LoadExternalOrders(event.nowo));
+    //add(LoadExternalOrders(event.nowo));
     return a;
   }
 }
