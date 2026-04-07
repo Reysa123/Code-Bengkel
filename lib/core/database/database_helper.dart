@@ -117,6 +117,15 @@ class DatabaseHelper {
         type TEXT NOT NULL CHECK(type IN ('asset','liability','equity','revenue','expense')),
         normal_balance TEXT NOT NULL CHECK(normal_balance IN ('debit','kredit'))        
       )''');
+    // Tabel login
+    await db.execute('''
+      CREATE TABLE login (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL CHECK (role IN ('admin', 'service', 'part', 'master'))
+      )
+    ''');
     await db.execute('''
 CREATE TABLE jurnal_umum (
       id_jurnal       INTEGER PRIMARY KEY AUTOINCREMENT,

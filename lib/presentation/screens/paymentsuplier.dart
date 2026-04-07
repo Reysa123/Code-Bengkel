@@ -36,7 +36,7 @@ class _PenagihanVendorPageState extends State<PenagihanVendorPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (state.status == ExternalOrderStatus.loaded) {
-            print(state.orders.first.beli);
+           // print(state.orders.first.beli);
             //List<ExternalOrder> pendingSublets = state.orders;
             // 1. Ambil list vendor unik untuk Dropdown
             vendors = state.orders.map((e) => e.vendor!).toSet().toList();

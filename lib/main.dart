@@ -17,6 +17,7 @@ import 'presentation/blocs/part_cubit.dart';
 import 'presentation/blocs/suppliers_cubit.dart';
 import 'presentation/blocs/work_order_cubit.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/login_screen.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
@@ -55,7 +56,11 @@ class MyApp extends StatelessWidget {
           fontFamily: 'Poppins',
         ),
         debugShowCheckedModeBanner: false,
-        home: const HomeScreen(),
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/home': (context) => const HomeScreen(),
+        },
+        home: const LoginScreen(),
       ),
     );
   }
